@@ -1,0 +1,122 @@
+[
+  {
+    "id": "1",
+    "name": "MacBook Pro 16\"",
+    "price": 2499,
+    "description": "The most powerful MacBook Pro ever. With the M3 Max chip, up to 48GB unified memory, and a stunning Liquid Retina XDR display.",
+    "specs": ["M3 Max Chip", "48GB Unified Memory", "1TB SSD", "16\" Liquid Retina XDR"],
+    "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600",
+    "stock": 15,
+    "category": "Laptops"
+  },
+  {
+    "id": "2",
+    "name": "Dell XPS 15",
+    "price": 1799,
+    "description": "Ultra-thin and powerful. Featuring a 15.6\" OLED InfinityEdge display with Intel Core i9 processor.",
+    "specs": ["Intel Core i9", "32GB RAM", "512GB SSD", "15.6\" OLED Display"],
+    "image_url": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=600",
+    "stock": 22,
+    "category": "Laptops"
+  },
+  {
+    "id": "3",
+    "name": "ThinkPad X1 Carbon",
+    "price": 1549,
+    "description": "Business ultrabook with legendary ThinkPad reliability. 14\" 2.8K OLED display and Intel vPro.",
+    "specs": ["Intel Core i7 vPro", "16GB RAM", "512GB SSD", "14\" 2.8K OLED"],
+    "image_url": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600",
+    "stock": 18,
+    "category": "Laptops"
+  },
+  {
+    "id": "4",
+    "name": "ASUS ROG Zephyrus",
+    "price": 2199,
+    "description": "Gaming powerhouse in an ultra-slim chassis. RTX 4080 graphics with a 240Hz QHD display.",
+    "specs": ["AMD Ryzen 9", "RTX 4080", "32GB RAM", "16\" 240Hz QHD"],
+    "image_url": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600",
+    "stock": 10,
+    "category": "Laptops"
+  },
+  {
+    "id": "5",
+    "name": "iPhone 16 Pro Max",
+    "price": 1199,
+    "description": "Titanium design. A18 Pro chip. 48MP camera system with 5x Telephoto. The ultimate iPhone.",
+    "specs": ["A18 Pro Chip", "256GB Storage", "48MP Camera", "6.9\" Super Retina XDR"],
+    "image_url": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600",
+    "stock": 30,
+    "category": "Smartphones"
+  },
+  {
+    "id": "6",
+    "name": "Samsung Galaxy S25 Ultra",
+    "price": 1299,
+    "description": "AI-powered smartphone with titanium frame. 200MP camera and Galaxy AI built in.",
+    "specs": ["Snapdragon 8 Elite", "12GB RAM", "200MP Camera", "6.8\" Dynamic AMOLED"],
+    "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600",
+    "stock": 25,
+    "category": "Smartphones"
+  },
+  {
+    "id": "7",
+    "name": "Google Pixel 9 Pro",
+    "price": 999,
+    "description": "The best of Google AI in a phone. Tensor G4 chip, Magic Eraser, and 50MP triple camera.",
+    "specs": ["Tensor G4", "12GB RAM", "50MP Triple Camera", "6.7\" LTPO OLED"],
+    "image_url": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600",
+    "stock": 20,
+    "category": "Smartphones"
+  },
+  {
+    "id": "8",
+    "name": "OnePlus 13",
+    "price": 799,
+    "description": "Flagship performance with Hasselblad camera system. 100W fast charging gets you from 0 to 100 in 25 min.",
+    "specs": ["Snapdragon 8 Elite", "16GB RAM", "50MP Hasselblad", "6.82\" 2K AMOLED"],
+    "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600",
+    "stock": 28,
+    "category": "Smartphones"
+  },
+  {
+    "id": "9",
+    "name": "AirPods Pro 3",
+    "price": 249,
+    "description": "Adaptive Audio, Personalized Spatial Audio, and up to 2x more Active Noise Cancellation.",
+    "specs": ["H3 Chip", "Adaptive Audio", "USB-C", "6h Battery Life"],
+    "image_url": "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600",
+    "stock": 50,
+    "category": "Gadgets"
+  },
+  {
+    "id": "10",
+    "name": "Apple Watch Ultra 3",
+    "price": 799,
+    "description": "The most rugged Apple Watch with precision dual-frequency GPS and 72-hour battery life.",
+    "specs": ["S10 Chip", "49mm Titanium", "72h Battery", "3000 nits Display"],
+    "image_url": "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600",
+    "stock": 12,
+    "category": "Gadgets"
+  },
+  {
+    "id": "11",
+    "name": "Sony WH-1000XM6",
+    "price": 349,
+    "description": "Industry-leading noise cancellation with 40-hour battery. Auto NC Optimizer adapts to your environment.",
+    "specs": ["V2 Processor", "LDAC Hi-Res", "40h Battery", "Multipoint Connection"],
+    "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
+    "stock": 35,
+    "category": "Gadgets"
+  },
+  {
+    "id": "12",
+    "name": "Meta Quest 4",
+    "price": 499,
+    "description": "Next-gen mixed reality headset. Full-color passthrough, eye tracking, and access to thousands of VR apps.",
+    "specs": ["Snapdragon XR3", "12GB RAM", "4K per eye", "2h Active Battery"],
+    "image_url": "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=600",
+    "stock": 8,
+    "category": "Gadgets"
+  }
+]
