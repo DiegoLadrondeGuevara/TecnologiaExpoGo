@@ -1,0 +1,9 @@
+{
+    "name": "techstore-shared-logic",
+    "version": "1.0.0",
+    "description": "Shared i18n, currency, and constants for TechStore ecosystem",
+    "main": "index.js",
+    "dependencies": {
+        "i18next": "^24.2.2"
+    }
+}
