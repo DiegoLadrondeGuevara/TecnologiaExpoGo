@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─── EMPRESA (Company) ───
+model Empresa {
+  id        String   @id @default(uuid())
+  name      String
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  config     AppConfig?
+  users      User[]
+  products   Product[]
+  categories Category[]
+}
+
+// ─── APP CONFIGURATION (Global Settings) ───
+model AppConfig {
+  id               String   @id @default(uuid())
+  empresaId        String   @unique
+  defaultLanguage  String   @default("en")
+  defaultCurrency  String   @default("USD")
+  baseCurrency     String   @default("USD")
+  exchangeRatePEN  Float    @default(3.80)
+  taxRate          Float    @default(0.16)
+  maintenanceMode  Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+}
+
+// ─── USERS ───
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  passwordHash      String
+  role              String   @default("CUSTOMER")
+  preferredLanguage String   @default("en")
+  preferredCurrency String   @default("USD")
+  empresaId         String
+  registeredAt      DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  orders  Order[]
+}
+
+// ─── CATEGORIES ───
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("#007AFF")
+  empresaId String
+  createdAt DateTime @default(now())
+
+  empresa  Empresa   @relation(fields: [empresaId], references: [id])
+  products Product[]
+}
+
+// ─── PRODUCTS ───
+model Product {
+  id            String   @id @default(uuid())
+  nameEn        String
+  nameEs        String
+  descriptionEn String
+  descriptionEs String
+  price         Float
+  specs         Json
+  imageUrl      String
+  stock         Int      @default(0)
+  categoryId    String
+  empresaId     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  empresa    Empresa     @relation(fields: [empresaId], references: [id])
+  orderItems OrderItem[]
+}
+
+// ─── ORDERS ───
+model Order {
+  id           String   @id @default(uuid())
+  userId       String
+  subtotal     Float
+  tax          Float
+  total        Float
+  currency     String
+  exchangeRate Float
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id])
+  items   OrderItem[]
+  payment Payment?
+}
+
+// ─── ORDER ITEMS ───
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// ─── PAYMENTS (Mercado Pago) ───
+model Payment {
+  id             String   @id @default(uuid())
+  orderId        String   @unique
+  externalId     String?
+  amount         Float
+  currency       String
+  status         String   @default("pending")
+  method         String   @default("mercadopago")
+  mpPreferenceId String?
+  mpInitPoint    String?
+  date           DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}

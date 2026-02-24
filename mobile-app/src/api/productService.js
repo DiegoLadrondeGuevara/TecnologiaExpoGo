@@ -1,62 +1,67 @@
-import products from '../data/products.json';
+/**
+ * Mobile App — Product Service (Real API)
+ *
+ * Replaces mock data with real backend calls.
+ * Resolves bilingual fields (nameEn/nameEs) based on current language.
+ */
+import apiClient from '../../../shared-logic/apiClient';
+import i18n from 'shared-logic/i18n';
 
-// Base URL for the backend API (loaded from .env)
-// In Expo, environment variables prefixed with EXPO_PUBLIC_ are accessible via process.env
-// For now, we use a local constant that can be swapped when a real backend is available.
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.techstore.com/v1';
-
-const SIMULATED_DELAY = 800;
-
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Map backend product → mobile-friendly product (with resolved name/description) */
+const mapProduct = (p) => {
+    const lang = i18n.language || 'en';
+    return {
+        id: p.id,
+        name: lang === 'es' ? p.nameEs : p.nameEn,
+        description: lang === 'es' ? p.descriptionEs : p.descriptionEn,
+        price: p.price,
+        specs: p.specs || [],
+        image_url: p.imageUrl,
+        stock: p.stock,
+        category: p.category?.name || '',
+        categoryId: p.categoryId,
+    };
+};
 
 /**
- * Fetches all products.
- * When a real backend is available, replace with:
- *   const res = await fetch(`${API_URL}/products`);
- *   return res.json();
+ * Fetches all products from the backend.
  */
 export const getProducts = async () => {
-    await delay(SIMULATED_DELAY);
-    return [...products];
+    const data = await apiClient.get('/products');
+    return (Array.isArray(data) ? data : []).map(mapProduct);
 };
 
 /**
  * Fetches a single product by ID.
  */
 export const getProductById = async (id) => {
-    await delay(SIMULATED_DELAY / 2);
-    const product = products.find((p) => p.id === id);
-    if (!product) throw new Error(`Product with id ${id} not found`);
-    return { ...product };
+    const data = await apiClient.get(`/products/${id}`);
+    return mapProduct(data);
 };
 
 /**
- * Returns the list of unique categories.
+ * Returns the list of categories including 'All'.
  */
 export const getCategories = async () => {
-    await delay(SIMULATED_DELAY / 2);
-    const categories = [...new Set(products.map((p) => p.category))];
-    return ['All', ...categories];
+    const data = await apiClient.get('/categories');
+    const names = (Array.isArray(data) ? data : []).map(c => c.name);
+    return ['All', ...names];
 };
 
 /**
- * Searches products by name or category.
+ * Searches products by name.
  */
 export const searchProducts = async (query) => {
-    await delay(SIMULATED_DELAY / 2);
-    const lowerQuery = query.toLowerCase();
-    return products.filter(
-        (p) =>
-            p.name.toLowerCase().includes(lowerQuery) ||
-            p.category.toLowerCase().includes(lowerQuery)
-    );
+    const data = await apiClient.get('/products', { params: { search: query } });
+    return (Array.isArray(data) ? data : []).map(mapProduct);
 };
 
 /**
- * Filters products by category.
+ * Filters products by category name.
  */
 export const getProductsByCategory = async (category) => {
-    await delay(SIMULATED_DELAY / 2);
-    if (category === 'All') return [...products];
-    return products.filter((p) => p.category === category);
+    if (category === 'All') return getProducts();
+    // We need to resolve categoryId from name — just filter client-side for simplicity
+    const all = await getProducts();
+    return all.filter(p => p.category === category);
 };

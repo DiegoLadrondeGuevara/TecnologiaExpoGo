@@ -9,7 +9,9 @@ import {
     Tags,
     Globe,
     ChevronRight,
+    LogOut,
 } from 'lucide-react';
+import { logout } from '../services/authService';
 
 const NAV_ITEMS = [
     { path: '/', icon: LayoutDashboard, labelKey: 'admin.dashboard' },
@@ -66,6 +68,18 @@ export default function DashboardLayout() {
                         </NavLink>
                     ))}
                 </nav>
+
+                {/* Logout */}
+                <div className="px-3 pb-2">
+                    <button
+                        onClick={logout}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-rose-500/10"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                        <LogOut size={18} />
+                        <span className="flex-1 text-left">{t('admin.logout') || 'Log Out'}</span>
+                    </button>
+                </div>
 
                 {/* Language Toggle */}
                 <div className="px-3 pb-4">

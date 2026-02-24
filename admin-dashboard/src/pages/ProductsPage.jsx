@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, X, Save, Image as ImageIcon, Box, AlertCircle, ExternalLink, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, Image as ImageIcon, Box, AlertCircle, ExternalLink, Search, Upload, Loader2 } from 'lucide-react';
 import { fetchProducts, createProduct, updateProduct, deleteProduct, fetchCategories } from '../services/api';
 import { formatPrice } from '../../../shared-logic/currency';
+import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryUpload';
 
-const emptyForm = { name_en: '', name_es: '', description_en: '', description_es: '', price: '', stock: '', category: '', image_url: '', specs: '' };
+const emptyForm = { name_en: '', name_es: '', description_en: '', description_es: '', price: '', stock: '', categoryId: '', image_url: '', specs: '' };
 
 export default function ProductsPage() {
     const { t, i18n } = useTranslation();
@@ -15,32 +16,58 @@ export default function ProductsPage() {
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
+    const [error, setError] = useState('');
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        Promise.all([fetchProducts(), fetchCategories()]).then(([p, c]) => {
-            setProducts(p);
-            setCategories(c);
-            setLoading(false);
-        });
+        Promise.all([fetchProducts(), fetchCategories()])
+            .then(([p, c]) => {
+                setProducts(p);
+                setCategories(c);
+                setLoading(false);
+            })
+            .catch(err => {
+                setError(err.message);
+                setLoading(false);
+            });
     }, []);
 
     const openCreate = () => { setForm(emptyForm); setEditingId(null); setShowModal(true); };
     const openEdit = (p) => {
-        setForm({ ...p, specs: (p.specs || []).join(', '), price: String(p.price), stock: String(p.stock) });
+        setForm({ ...p, categoryId: p.categoryId || '', specs: (p.specs || []).join(', '), price: String(p.price), stock: String(p.stock) });
         setEditingId(p.id);
         setShowModal(true);
     };
 
     const handleSave = async () => {
-        const data = { ...form, price: Number(form.price), stock: Number(form.stock), specs: form.specs.split(',').map(s => s.trim()).filter(Boolean) };
-        if (editingId) {
-            const updated = await updateProduct(editingId, data);
-            setProducts(prev => prev.map(p => p.id === editingId ? updated : p));
-        } else {
-            const created = await createProduct(data);
-            setProducts(prev => [created, ...prev]);
+        setError('');
+        try {
+            const data = { ...form, price: Number(form.price), stock: Number(form.stock), specs: form.specs.split(',').map(s => s.trim()).filter(Boolean) };
+            if (editingId) {
+                const updated = await updateProduct(editingId, data);
+                setProducts(prev => prev.map(p => p.id === editingId ? updated : p));
+            } else {
+                const created = await createProduct(data);
+                setProducts(prev => [created, ...prev]);
+            }
+            setShowModal(false);
+        } catch (err) {
+            setError(err.message);
         }
-        setShowModal(false);
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const url = await uploadImage(file);
+            setForm(f => ({ ...f, image_url: url }));
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleDelete = async (id) => {
@@ -179,6 +206,13 @@ export default function ProductsPage() {
                                         placeholder="URL de la imagen..."
                                         className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
                                     />
+                                    {isCloudinaryConfigured() && (
+                                        <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/20 rounded-xl cursor-pointer transition-all text-indigo-400 text-xs font-bold mt-2">
+                                            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                                            {uploading ? 'Uploading...' : 'Upload Image'}
+                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                                        </label>
+                                    )}
                                 </div>
 
                                 {/* Right Side: Info */}
@@ -204,9 +238,9 @@ export default function ProductsPage() {
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.category')}</label>
-                                            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 cursor-pointer font-bold appearance-none">
+                                            <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 cursor-pointer font-bold appearance-none">
                                                 <option value="">-- Seleccionar --</option>
-                                                {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
                                     </div>
