@@ -1,13 +1,17 @@
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 export declare class PaymentsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private configService;
+    private readonly logger;
+    private mpClient;
+    constructor(prisma: PrismaService, configService: ConfigService);
     createPreference(userId: string, data: {
         orderId: string;
     }): Promise<{
-        id: string;
-        init_point: string;
-        sandbox_init_point: string;
+        id: string | undefined;
+        init_point: string | undefined;
+        sandbox_init_point: string | undefined;
         paymentId: string;
     }>;
     findAll(): Promise<({
@@ -64,11 +68,25 @@ export declare class PaymentsService {
         date: Date;
     })[]>;
     handleWebhook(body: {
-        action: string;
-        data: {
+        action?: string;
+        type?: string;
+        data?: {
             id: string;
         };
     }): Promise<{
         received: boolean;
+        processed: boolean;
+        status?: undefined;
+        error?: undefined;
+    } | {
+        received: boolean;
+        processed: boolean;
+        status: string | undefined;
+        error?: undefined;
+    } | {
+        received: boolean;
+        processed: boolean;
+        error: any;
+        status?: undefined;
     }>;
 }

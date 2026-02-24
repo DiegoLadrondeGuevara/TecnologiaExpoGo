@@ -1,20 +1,38 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Settings, Bell, HelpCircle, LogOut, Globe } from 'lucide-react-native';
+import { User, Settings, Bell, HelpCircle, LogOut, Globe, ShoppingBag } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }) => {
     const { t, locale, currency, toggleLanguage } = useLanguage();
+    const { user, logout } = useAuth();
+
+    const handleSignOut = () => {
+        Alert.alert(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: () => logout(),
+                },
+            ]
+        );
+    };
 
     const menuItems = [
+        { icon: ShoppingBag, label: locale === 'es' ? 'Mis Pedidos' : 'My Orders', onPress: () => navigation.navigate('MyOrders') },
         { icon: Bell, label: t('profile.notifications'), badge: '3' },
         { icon: Globe, label: t('profile.switchLanguage'), subtitle: `${locale.toUpperCase()} / ${currency}`, onPress: toggleLanguage },
         { icon: Settings, label: t('profile.settings') },
         { icon: HelpCircle, label: t('profile.helpSupport') },
-        { icon: LogOut, label: t('profile.signOut'), danger: true },
+        { icon: LogOut, label: t('profile.signOut'), danger: true, onPress: handleSignOut },
     ];
 
     return (
@@ -26,24 +44,29 @@ const ProfileScreen = () => {
                 <View style={styles.avatarContainer}>
                     <User size={40} color={COLORS.primary} />
                 </View>
-                <Text style={styles.userName}>Tech Shopper</Text>
-                <Text style={styles.userEmail}>user@techstore.com</Text>
+                <Text style={styles.userName}>{user?.name || 'Tech Shopper'}</Text>
+                <Text style={styles.userEmail}>{user?.email || 'user@techstore.com'}</Text>
+                {user?.role && (
+                    <View style={styles.roleBadge}>
+                        <Text style={styles.roleText}>{user.role}</Text>
+                    </View>
+                )}
             </View>
 
             {/* Stats */}
             <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>12</Text>
+                    <Text style={styles.statValue}>—</Text>
                     <Text style={styles.statLabel}>{t('profile.orders')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>3</Text>
+                    <Text style={styles.statValue}>—</Text>
                     <Text style={styles.statLabel}>{t('profile.wishlist')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>$4.2k</Text>
+                    <Text style={styles.statValue}>—</Text>
                     <Text style={styles.statLabel}>{t('profile.spent')}</Text>
                 </View>
             </View>
@@ -127,6 +150,20 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         marginTop: 4,
+    },
+    roleBadge: {
+        marginTop: 8,
+        backgroundColor: 'rgba(0, 122, 255, 0.12)',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    roleText: {
+        color: COLORS.primary,
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     statsRow: {
         flexDirection: 'row',

@@ -27,7 +27,7 @@ let OrdersService = class OrdersService {
             if (!product)
                 throw new common_1.NotFoundException(`Product ${item.productId} not found`);
             if (product.stock < item.quantity) {
-                throw new Error(`Insufficient stock for ${product.nameEn}`);
+                throw new common_1.BadRequestException(`Insufficient stock for ${product.nameEn}`);
             }
             const lineTotal = product.price * item.quantity;
             subtotal += lineTotal;
@@ -44,26 +44,17 @@ let OrdersService = class OrdersService {
         const taxRate = user?.empresa?.config?.taxRate ?? 0.16;
         const tax = subtotal * taxRate;
         const total = subtotal + tax;
-        const order = await this.prisma.$transaction(async (tx) => {
-            const created = await tx.order.create({
-                data: {
-                    userId,
-                    subtotal,
-                    tax,
-                    total,
-                    currency: data.currency,
-                    exchangeRate: data.exchangeRate,
-                    items: { create: orderItems },
-                },
-                include: { items: { include: { product: true } } },
-            });
-            for (const item of data.items) {
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: { stock: { decrement: item.quantity } },
-                });
-            }
-            return created;
+        const order = await this.prisma.order.create({
+            data: {
+                userId,
+                subtotal,
+                tax,
+                total,
+                currency: data.currency,
+                exchangeRate: data.exchangeRate,
+                items: { create: orderItems },
+            },
+            include: { items: { include: { product: true } } },
         });
         return order;
     }

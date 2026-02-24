@@ -10,9 +10,9 @@ export declare class PaymentsController {
             id: string;
         };
     }, dto: CreatePreferenceDto): Promise<{
-        id: string;
-        init_point: string;
-        sandbox_init_point: string;
+        id: string | undefined;
+        init_point: string | undefined;
+        sandbox_init_point: string | undefined;
         paymentId: string;
     }>;
     findAll(): Promise<({
@@ -75,5 +75,18 @@ export declare class PaymentsController {
         };
     }): Promise<{
         received: boolean;
+        processed: boolean;
+        status?: undefined;
+        error?: undefined;
+    } | {
+        received: boolean;
+        processed: boolean;
+        status: string | undefined;
+        error?: undefined;
+    } | {
+        received: boolean;
+        processed: boolean;
+        error: any;
+        status?: undefined;
     }>;
 }

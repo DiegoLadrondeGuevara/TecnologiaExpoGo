@@ -1,66 +1,48 @@
 /**
- * Mercado Pago Payment Service (Mock)
- *
- * This service simulates creating a Mercado Pago Checkout Pro preference.
- * In production, this would call your backend API which uses the
- * Mercado Pago SDK to generate the preference with the real access token.
- *
- * Replace the mock with a real API call when your backend is ready:
- *   const res = await fetch(`${API_URL}/payments/create-preference`, {
- *     method: 'POST',
- *     headers: { 'Content-Type': 'application/json' },
- *     body: JSON.stringify({ items, payer }),
- *   });
- *   return res.json();
+ * Payment Service — Real API calls via apiClient
+ * Creates orders and Mercado Pago payment preferences through the backend
  */
-
-const MOCK_DELAY = 1000;
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Mock Mercado Pago init_point URL for testing
-const MOCK_INIT_POINT = 'https://www.mercadopago.com.pe/checkout/v1/redirect?pref_id=MOCK_PREFERENCE_ID';
+import apiClient from 'shared-logic/apiClient';
 
 /**
- * Creates a payment preference for Mercado Pago Checkout Pro.
- * @param {Array} cartItems - List of cart items
- * @param {number} total    - Total amount in USD
+ * Create an order on the backend.
+ * @param {Array<{productId: string, quantity: number}>} items
  * @param {string} currency - 'USD' | 'PEN'
- * @returns {Promise<{id: string, init_point: string, sandbox_init_point: string}>}
+ * @param {number} exchangeRate
+ * @returns {Promise<{id, subtotal, tax, total, items, ...}>}
  */
-export const createPaymentPreference = async (cartItems, total, currency = 'USD') => {
-    await delay(MOCK_DELAY);
-
-    // In production, your backend creates the preference using the MercadoPago SDK:
-    // const preference = new Preference(client);
-    // const result = await preference.create({ body: { items, back_urls, ... } });
-
-    const preferenceId = `PREF_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    return {
-        id: preferenceId,
-        init_point: MOCK_INIT_POINT,
-        sandbox_init_point: `https://sandbox.mercadopago.com.pe/checkout/v1/redirect?pref_id=${preferenceId}`,
-    };
+export const createOrder = async (items, currency = 'USD', exchangeRate = 1) => {
+    return apiClient.post('/orders', {
+        items: items.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+        })),
+        currency,
+        exchangeRate,
+    });
 };
 
 /**
- * Check payment status (mock).
- * @param {string} paymentId
- * @returns {Promise<{status: string, statusDetail: string}>}
+ * Creates a Mercado Pago payment preference for an existing order.
+ * The backend uses the real MP SDK to generate the checkout URL.
+ * @param {string} orderId
+ * @returns {Promise<{id, init_point, sandbox_init_point, paymentId}>}
  */
-export const getPaymentStatus = async (paymentId) => {
-    await delay(MOCK_DELAY / 2);
-
-    return {
-        status: 'approved',
-        statusDetail: 'accredited',
-        paymentId,
-        externalReference: `ORDER_${Date.now()}`,
-    };
+export const createPaymentPreference = async (orderId) => {
+    return apiClient.post('/payments/create-preference', { orderId });
 };
 
 /**
- * Mercado Pago callback URLs (used by backend to set back_urls).
+ * Fetches the current user's order history from the backend.
+ * Backend returns user-specific orders for CUSTOMER role, all orders for ADMIN.
+ * @returns {Promise<Array<{id, subtotal, tax, total, status, createdAt, items, payment}>>}
+ */
+export const fetchMyOrders = async () => {
+    return apiClient.get('/orders');
+};
+
+/**
+ * Mercado Pago callback URLs (matched in backend back_urls config).
  */
 export const MP_CALLBACK_URLS = {
     success: 'techstore://payment/success',

@@ -15,9 +15,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { createPaymentPreference, MP_CALLBACK_URLS } from '../api/paymentService';
 
 const PaymentScreen = ({ route, navigation }) => {
-    const { total } = route.params || {};
-    const { cartItems, clearCart } = useCart();
-    const { t, currency } = useLanguage();
+    const { orderId } = route.params || {};
+    const { clearCart } = useCart();
+    const { t } = useLanguage();
     const [initPoint, setInitPoint] = useState(null);
     const [loading, setLoading] = useState(true);
     const [paymentResult, setPaymentResult] = useState(null); // 'success' | 'failure' | 'pending'
@@ -25,7 +25,11 @@ const PaymentScreen = ({ route, navigation }) => {
     useEffect(() => {
         const initPayment = async () => {
             try {
-                const preference = await createPaymentPreference(cartItems, total, currency);
+                if (!orderId) {
+                    setPaymentResult('failure');
+                    return;
+                }
+                const preference = await createPaymentPreference(orderId);
                 setInitPoint(preference.sandbox_init_point || preference.init_point);
             } catch (error) {
                 console.error('Error creating payment preference:', error);
@@ -35,7 +39,7 @@ const PaymentScreen = ({ route, navigation }) => {
             }
         };
         initPayment();
-    }, []);
+    }, [orderId]);
 
     const handleNavigationStateChange = (navState) => {
         const { url } = navState;

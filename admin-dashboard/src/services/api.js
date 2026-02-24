@@ -113,6 +113,31 @@ export const fetchPayments = async () => {
     return (Array.isArray(data) ? data : []).map(mapPayment);
 };
 
+// --- Orders (Sales) ---
+const mapOrder = (o) => ({
+    id: o.id,
+    userId: o.userId,
+    userName: o.user?.name || 'Unknown',
+    userEmail: o.user?.email || '',
+    subtotal: o.subtotal,
+    tax: o.tax,
+    total: o.total,
+    currency: o.currency,
+    status: o.status,
+    createdAt: o.createdAt,
+    items: (o.items || []).map((i) => ({
+        productName: i.product?.nameEn || 'Product',
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+    })),
+    payment: o.payment,
+});
+
+export const fetchOrders = async () => {
+    const data = await apiClient.get('/orders');
+    return (Array.isArray(data) ? data : []).map(mapOrder);
+};
+
 // --- Categories ---
 export const fetchCategories = async () => {
     const data = await apiClient.get('/categories');

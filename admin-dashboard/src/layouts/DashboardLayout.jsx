@@ -10,6 +10,7 @@ import {
     Globe,
     ChevronRight,
     LogOut,
+    ShoppingCart,
 } from 'lucide-react';
 import { logout } from '../services/authService';
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
     { path: '/products', icon: Package, labelKey: 'admin.products' },
     { path: '/users', icon: Users, labelKey: 'admin.users' },
     { path: '/payments', icon: CreditCard, labelKey: 'admin.payments' },
+    { path: '/sales', icon: ShoppingCart, labelKey: 'admin.sales' },
     { path: '/categories', icon: Tags, labelKey: 'admin.categories' },
 ];
 

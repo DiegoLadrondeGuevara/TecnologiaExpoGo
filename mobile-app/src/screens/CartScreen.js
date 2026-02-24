@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
     FlatList,
     StyleSheet,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreditCard } from 'lucide-react-native';
@@ -12,6 +13,7 @@ import { COLORS } from '../theme/colors';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatPrice } from 'shared-logic/currency';
+import { createOrder } from '../api/paymentService';
 import CartItem from '../components/CartItem';
 import CustomButton from '../components/CustomButton';
 import EmptyState from '../components/EmptyState';
@@ -25,10 +27,31 @@ const CartScreen = ({ navigation }) => {
         updateQuantity,
         removeFromCart,
     } = useCart();
-    const { t, currency } = useLanguage();
+    const { t, currency, exchangeRate } = useLanguage();
+    const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-    const handleCheckout = () => {
-        navigation.navigate('Payment', { total });
+    const handleCheckout = async () => {
+        if (cartItems.length === 0) return;
+
+        setCheckoutLoading(true);
+        try {
+            // 1. Create the order on the backend
+            const order = await createOrder(
+                cartItems,
+                currency,
+                currency === 'PEN' ? exchangeRate : 1,
+            );
+
+            // 2. Navigate to Payment screen with the orderId
+            navigation.navigate('Payment', { orderId: order.id, total });
+        } catch (error) {
+            Alert.alert(
+                'Error',
+                error.message || 'Could not create your order. Please try again.',
+            );
+        } finally {
+            setCheckoutLoading(false);
+        }
     };
 
     const handleRemove = (productId) => {
@@ -99,10 +122,17 @@ const CartScreen = ({ navigation }) => {
 
             <View style={styles.checkoutBar}>
                 <CustomButton
-                    title={t('cart.checkout')}
+                    title={checkoutLoading ? '' : t('cart.checkout')}
                     onPress={handleCheckout}
-                    icon={<CreditCard size={18} color={COLORS.white} />}
-                    style={styles.checkoutBtn}
+                    disabled={checkoutLoading}
+                    icon={
+                        checkoutLoading ? (
+                            <ActivityIndicator color={COLORS.white} size="small" />
+                        ) : (
+                            <CreditCard size={18} color={COLORS.white} />
+                        )
+                    }
+                    style={[styles.checkoutBtn, checkoutLoading && styles.checkoutBtnDisabled]}
                 />
             </View>
         </SafeAreaView>
@@ -196,6 +226,9 @@ const styles = StyleSheet.create({
     },
     checkoutBtn: {
         width: '100%',
+    },
+    checkoutBtnDisabled: {
+        opacity: 0.7,
     },
 });
 

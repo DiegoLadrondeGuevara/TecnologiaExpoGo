@@ -119,6 +119,8 @@
         "addCategory": "Agregar Categoría",
         "noData": "No hay datos disponibles",
         "confirmDelete": "¿Estás seguro de que deseas eliminar este elemento?",
-        "specs": "Especificaciones"
+        "specs": "Especificaciones",
+        "sales": "Ventas",
+        "loading": "Cargando"
     }
 }

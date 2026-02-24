@@ -1,9 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { MercadoPagoConfig, Preference, Payment as MPPayment } from 'mercadopago';
 
 @Injectable()
 export class PaymentsService {
-    constructor(private prisma: PrismaService) { }
+    private readonly logger = new Logger(PaymentsService.name);
+    private mpClient: MercadoPagoConfig;
+
+    constructor(
+        private prisma: PrismaService,
+        private configService: ConfigService,
+    ) {
+        const accessToken = this.configService.get<string>('MP_ACCESS_TOKEN');
+        if (!accessToken) {
+            this.logger.warn('MP_ACCESS_TOKEN not configured — Mercado Pago will not work');
+        }
+        this.mpClient = new MercadoPagoConfig({
+            accessToken: accessToken || '',
+        });
+
+        const webhookUrl = this.configService.get<string>('MP_WEBHOOK_URL');
+        this.logger.log(`✅ MercadoPago initialized | webhook: ${webhookUrl || '(not configured — set MP_WEBHOOK_URL in .env)'}`);
+    }
 
     async createPreference(
         userId: string,
@@ -15,25 +34,48 @@ export class PaymentsService {
         });
         if (!order) throw new NotFoundException('Order not found');
 
-        // In production, call Mercado Pago SDK here to create a real preference
-        // For now, simulate the preference creation
-        const preferenceId = `PREF_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const initPoint = `https://sandbox.mercadopago.com.pe/checkout/v1/redirect?pref_id=${preferenceId}`;
+        // Build MP items from the order
+        const items = order.items.map((item) => ({
+            id: item.productId,
+            title: item.product.nameEn,
+            quantity: item.quantity,
+            unit_price: Number((item.unitPrice * order.exchangeRate).toFixed(2)),
+            currency_id: order.currency === 'PEN' ? 'PEN' : 'USD',
+        }));
 
+        // Create real Mercado Pago preference
+        const preference = new Preference(this.mpClient);
+        const result = await preference.create({
+            body: {
+                items,
+                back_urls: {
+                    success: 'techstore://payment/success',
+                    failure: 'techstore://payment/failure',
+                    pending: 'techstore://payment/pending',
+                },
+                auto_return: 'approved',
+                external_reference: data.orderId,
+                notification_url: this.configService.get<string>('MP_WEBHOOK_URL') || undefined,
+            },
+        });
+
+        this.logger.log(`MP preference created: ${result.id} for order ${data.orderId}`);
+
+        // Store the preference in the Payment record
         const payment = await this.prisma.payment.create({
             data: {
                 orderId: data.orderId,
                 amount: order.total,
                 currency: order.currency,
-                mpPreferenceId: preferenceId,
-                mpInitPoint: initPoint,
+                mpPreferenceId: result.id || '',
+                mpInitPoint: result.init_point || '',
             },
         });
 
         return {
-            id: preferenceId,
-            init_point: initPoint,
-            sandbox_init_point: initPoint,
+            id: result.id,
+            init_point: result.init_point,
+            sandbox_init_point: result.sandbox_init_point,
             paymentId: payment.id,
         };
     }
@@ -53,28 +95,88 @@ export class PaymentsService {
     }
 
     async handleWebhook(body: {
-        action: string;
-        data: { id: string };
+        action?: string;
+        type?: string;
+        data?: { id: string };
     }) {
-        // In production, verify Mercado Pago signature
-        // and update payment status based on the webhook data
-        if (body.action === 'payment.updated' || body.action === 'payment.created') {
-            // Find payment by external ID and update status
+        this.logger.log(`Webhook received: ${JSON.stringify(body)}`);
+
+        // Mercado Pago sends type=payment for payment notifications
+        const isPaymentNotification =
+            body.type === 'payment' ||
+            body.action === 'payment.updated' ||
+            body.action === 'payment.created';
+
+        if (!isPaymentNotification || !body.data?.id) {
+            return { received: true, processed: false };
+        }
+
+        try {
+            // Query the real payment status from Mercado Pago API
+            const mpPayment = new MPPayment(this.mpClient);
+            const paymentInfo = await mpPayment.get({ id: Number(body.data.id) });
+
+            this.logger.log(
+                `MP Payment ${body.data.id}: status=${paymentInfo.status}, ref=${paymentInfo.external_reference}`,
+            );
+
+            const orderId = paymentInfo.external_reference;
+            if (!orderId) {
+                this.logger.warn('No external_reference in payment');
+                return { received: true, processed: false };
+            }
+
+            // Find the payment record by orderId
             const payment = await this.prisma.payment.findFirst({
-                where: { externalId: body.data.id },
+                where: { orderId },
             });
-            if (payment) {
-                await this.prisma.payment.update({
-                    where: { id: payment.id },
-                    data: { status: 'approved' },
-                });
-                // Also update order status
-                await this.prisma.order.update({
-                    where: { id: payment.orderId },
-                    data: { status: 'paid' },
+
+            if (!payment) {
+                this.logger.warn(`No payment record found for order ${orderId}`);
+                return { received: true, processed: false };
+            }
+
+            // Update payment with external info
+            await this.prisma.payment.update({
+                where: { id: payment.id },
+                data: {
+                    externalId: String(body.data.id),
+                    status: paymentInfo.status || 'unknown',
+                },
+            });
+
+            // If approved: update order status + decrement stock
+            if (paymentInfo.status === 'approved') {
+                await this.prisma.$transaction(async (tx) => {
+                    // Mark order as paid
+                    await tx.order.update({
+                        where: { id: orderId },
+                        data: { status: 'paid' },
+                    });
+
+                    // Decrement stock for each item
+                    const order = await tx.order.findUnique({
+                        where: { id: orderId },
+                        include: { items: true },
+                    });
+
+                    if (order) {
+                        for (const item of order.items) {
+                            await tx.product.update({
+                                where: { id: item.productId },
+                                data: { stock: { decrement: item.quantity } },
+                            });
+                        }
+                    }
+
+                    this.logger.log(`✅ Order ${orderId} marked as PAID, stock decremented`);
                 });
             }
+
+            return { received: true, processed: true, status: paymentInfo.status };
+        } catch (error) {
+            this.logger.error(`Webhook processing error: ${error.message}`);
+            return { received: true, processed: false, error: error.message };
         }
-        return { received: true };
     }
 }
