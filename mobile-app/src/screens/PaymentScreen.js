@@ -12,12 +12,14 @@ import { ChevronLeft, CheckCircle, XCircle, Clock } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotification } from '../context/NotificationContext';
 import { createPaymentPreference, MP_CALLBACK_URLS } from '../api/paymentService';
 
 const PaymentScreen = ({ route, navigation }) => {
     const { orderId } = route.params || {};
     const { clearCart } = useCart();
     const { t } = useLanguage();
+    const { showNotification } = useNotification();
     const [initPoint, setInitPoint] = useState(null);
     const [loading, setLoading] = useState(true);
     const [paymentResult, setPaymentResult] = useState(null); // 'success' | 'failure' | 'pending'
@@ -44,13 +46,45 @@ const PaymentScreen = ({ route, navigation }) => {
     const handleNavigationStateChange = (navState) => {
         const { url } = navState;
 
-        if (url.includes(MP_CALLBACK_URLS.success) || url.includes('status=approved')) {
+        // MercadoPago returns results via URL parameters in the redirect
+        // Check for collection_status or status query params
+        const getParam = (name) => {
+            const match = url.match(new RegExp('[?&]' + name + '=([^&]+)'));
+            return match ? match[1] : null;
+        };
+
+        const collectionStatus = getParam('collection_status');
+        const status = getParam('status');
+        const effectiveStatus = collectionStatus || status;
+
+        if (effectiveStatus === 'approved') {
             setPaymentResult('success');
             clearCart();
-        } else if (url.includes(MP_CALLBACK_URLS.failure) || url.includes('status=rejected')) {
-            setPaymentResult('failure');
-        } else if (url.includes(MP_CALLBACK_URLS.pending) || url.includes('status=in_process')) {
+            showNotification({
+                title: '✅ ' + (t('payment.success') || 'Payment Successful'),
+                message: t('payment.successMessage') || 'Your order has been confirmed!',
+                type: 'success',
+                duration: 5000,
+            });
+        } else if (effectiveStatus === 'rejected' || effectiveStatus === 'null') {
+            // MP returns status=null when card is rejected
+            if (url.includes('payment/failure') || effectiveStatus === 'rejected' || (effectiveStatus === 'null' && url.includes('failure'))) {
+                setPaymentResult('failure');
+            }
+        } else if (effectiveStatus === 'in_process' || effectiveStatus === 'pending') {
             setPaymentResult('pending');
+        }
+
+        // Also catch deep link attempts (as fallback)
+        if (url.startsWith('techstore://')) {
+            if (url.includes('success')) {
+                setPaymentResult('success');
+                clearCart();
+            } else if (url.includes('failure')) {
+                setPaymentResult('failure');
+            } else if (url.includes('pending')) {
+                setPaymentResult('pending');
+            }
         }
     };
 
@@ -107,7 +141,7 @@ const PaymentScreen = ({ route, navigation }) => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={COLORS.black} />
                     <Text style={styles.loadingText}>{t('payment.processing')}</Text>
                 </View>
             </SafeAreaView>
@@ -122,7 +156,7 @@ const PaymentScreen = ({ route, navigation }) => {
                     style={styles.backBtn}
                     onPress={() => navigation.goBack()}
                 >
-                    <ChevronLeft size={22} color={COLORS.white} />
+                    <ChevronLeft size={22} color={COLORS.black} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('payment.title')}</Text>
                 <View style={{ width: 40 }} />
@@ -134,7 +168,7 @@ const PaymentScreen = ({ route, navigation }) => {
                 startInLoadingState
                 renderLoading={() => (
                     <View style={styles.webviewLoading}>
-                        <ActivityIndicator size="large" color={COLORS.primary} />
+                        <ActivityIndicator size="large" color={COLORS.black} />
                     </View>
                 )}
             />

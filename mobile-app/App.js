@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 import { LanguageProvider } from './src/context/LanguageContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -14,8 +15,10 @@ export default function App() {
         <AuthProvider>
           <LanguageProvider>
             <CartProvider>
-              <StatusBar barStyle="light-content" backgroundColor="#1C1C1E" />
-              <AppNavigator />
+              <NotificationProvider>
+                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+                <AppNavigator />
+              </NotificationProvider>
             </CartProvider>
           </LanguageProvider>
         </AuthProvider>

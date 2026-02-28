@@ -22,14 +22,17 @@ const ProductCard = ({ product, onPress, currency: currencyProp }) => {
         <TouchableOpacity
             style={styles.card}
             onPress={() => onPress(product)}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
         >
+            {/* 1:1 Image Container */}
             <View style={styles.imageContainer}>
                 <Image
                     source={{ uri: product.image_url }}
                     style={styles.image}
-                    resizeMode="cover"
+                    resizeMode="contain"
                 />
+                {/* Bottom gradient for depth */}
+                <View style={styles.imageGradient} />
                 <View style={styles.categoryBadge}>
                     <Text style={styles.categoryText}>{product.category}</Text>
                 </View>
@@ -56,31 +59,55 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginBottom: 16,
         overflow: 'hidden',
+        // Subtle shadow for depth
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 3,
     },
     imageContainer: {
         width: '100%',
-        height: CARD_WIDTH * 0.85,
-        backgroundColor: COLORS.cardLight,
+        aspectRatio: 1,
+        backgroundColor: COLORS.white,
+        alignItems: 'center',
+        justifyContent: 'center',
         position: 'relative',
+        overflow: 'hidden',
     },
     image: {
-        width: '100%',
-        height: '100%',
+        width: '80%',
+        height: '80%',
+    },
+    imageGradient: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 40,
+        backgroundColor: 'transparent',
+        // Subtle bottom shadow effect
+        borderBottomWidth: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -8 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
     },
     categoryBadge: {
         position: 'absolute',
         top: 8,
         left: 8,
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.black,
         paddingHorizontal: 8,
         paddingVertical: 3,
-        borderRadius: 8,
+        borderRadius: 6,
     },
     categoryText: {
         color: COLORS.white,
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: '700',
-        letterSpacing: 0.3,
+        letterSpacing: 0.5,
+        textTransform: 'uppercase',
     },
     info: {
         padding: 12,
@@ -98,7 +125,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     price: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 16,
         fontWeight: '800',
     },

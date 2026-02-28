@@ -51,7 +51,7 @@ const OrderCard = ({ order, currency, isSpanish }) => {
             <View style={styles.orderHeader}>
                 <View style={styles.orderIdRow}>
                     <View style={styles.orderIconWrap}>
-                        <Package size={16} color={COLORS.primary} />
+                        <Package size={16} color={COLORS.black} />
                     </View>
                     <Text style={styles.orderId} numberOfLines={1}>
                         #{order.id.slice(0, 8)}
@@ -142,7 +142,7 @@ const MyOrdersScreen = ({ navigation }) => {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.loadingWrap}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={COLORS.black} />
                 </View>
             </SafeAreaView>
         );
@@ -156,7 +156,7 @@ const MyOrdersScreen = ({ navigation }) => {
                     style={styles.backBtn}
                     onPress={() => navigation.goBack()}
                 >
-                    <ChevronLeft size={22} color={COLORS.white} />
+                    <ChevronLeft size={22} color={COLORS.black} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>
                     {isSpanish ? 'Mis Pedidos' : 'My Orders'}
@@ -188,8 +188,8 @@ const MyOrdersScreen = ({ navigation }) => {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            tintColor={COLORS.primary}
-                            colors={[COLORS.primary]}
+                            tintColor={COLORS.black}
+                            colors={[COLORS.black]}
                         />
                     }
                     renderItem={({ item }) => (
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 10,
-        backgroundColor: 'rgba(0, 122, 255, 0.1)',
+        backgroundColor: 'rgba(0, 0, 0, 0.06)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     moreItems: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 12,
         fontWeight: '600',
         marginTop: 2,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
         fontSize: 10,
     },
     totalText: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 18,
         fontWeight: '800',
     },

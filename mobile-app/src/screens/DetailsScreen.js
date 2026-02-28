@@ -5,78 +5,65 @@ import {
     Image,
     StyleSheet,
     ScrollView,
-    ActivityIndicator,
-    Alert,
+    TouchableOpacity,
     Dimensions,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TouchableOpacity } from 'react-native';
-import { Minus, Plus, ShoppingCart, ChevronLeft, Package } from 'lucide-react-native';
+import {
+    ChevronLeft,
+    ShoppingCart,
+    Plus,
+    Minus,
+    Package,
+    Shield,
+    Truck,
+} from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { getProductById } from '../api/productService';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatPrice } from 'shared-logic/currency';
-import CustomButton from '../components/CustomButton';
 
 const { width } = Dimensions.get('window');
 
 const DetailsScreen = ({ route, navigation }) => {
     const { productId } = route.params;
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [quantity, setQuantity] = useState(1);
     const { addToCart } = useCart();
     const { t, currency } = useLanguage();
 
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [quantity, setQuantity] = useState(1);
+    const [addedToCart, setAddedToCart] = useState(false);
+
     useEffect(() => {
-        const fetchProduct = async () => {
+        const loadProduct = async () => {
             try {
                 const data = await getProductById(productId);
                 setProduct(data);
             } catch (error) {
-                console.error('Error fetching product:', error);
+                console.error('Error loading product:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchProduct();
+        loadProduct();
     }, [productId]);
 
     const handleAddToCart = () => {
         if (product) {
             addToCart(product, quantity);
-            Alert.alert(
-                t('details.addedToCart'),
-                t('details.addedMessage', { quantity, name: product.name }),
-                [
-                    { text: t('details.continueShopping'), style: 'cancel' },
-                    {
-                        text: t('details.goToCart'),
-                        onPress: () => navigation.navigate('CartTab'),
-                    },
-                ]
-            );
-        }
-    };
-
-    const incrementQty = () => {
-        if (product && quantity < product.stock) {
-            setQuantity((q) => q + 1);
-        }
-    };
-
-    const decrementQty = () => {
-        if (quantity > 1) {
-            setQuantity((q) => q - 1);
+            setAddedToCart(true);
+            setTimeout(() => setAddedToCart(false), 2500);
         }
     };
 
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                <View style={styles.loadingWrap}>
+                    <ActivityIndicator size="large" color={COLORS.black} />
                 </View>
             </SafeAreaView>
         );
@@ -85,117 +72,116 @@ const DetailsScreen = ({ route, navigation }) => {
     if (!product) {
         return (
             <SafeAreaView style={styles.container}>
-                <View style={styles.loadingContainer}>
-                    <Text style={styles.errorText}>{t('details.productNotFound')}</Text>
+                <View style={styles.loadingWrap}>
+                    <Text style={styles.errorText}>Product not found</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
+    const specs = product.specs || {};
+
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-                {/* Hero Image */}
-                <View style={styles.heroContainer}>
+                {/* Image Section */}
+                <View style={styles.imageSection}>
+                    <TouchableOpacity
+                        style={styles.backBtn}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <ChevronLeft size={22} color={COLORS.black} />
+                    </TouchableOpacity>
                     <Image
                         source={{ uri: product.image_url }}
-                        style={styles.heroImage}
-                        resizeMode="cover"
+                        style={styles.image}
+                        resizeMode="contain"
                     />
-                    <SafeAreaView style={styles.backBtnContainer} edges={['top']}>
-                        <TouchableOpacity
-                            style={styles.backBtn}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <ChevronLeft size={22} color={COLORS.white} />
-                        </TouchableOpacity>
-                    </SafeAreaView>
-                    <View style={styles.heroOverlay} />
-                    <View style={styles.categoryTag}>
-                        <Text style={styles.categoryTagText}>{product.category}</Text>
-                    </View>
                 </View>
 
-                {/* Product Info */}
-                <View style={styles.infoSection}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.productPrice}>
-                        {formatPrice(product.price, currency)}
-                    </Text>
-                    <View style={styles.stockRow}>
-                        <Package size={14} color={COLORS.success} />
-                        <Text style={styles.stockText}>
-                            {t('details.unitsInStock', { count: product.stock })}
-                        </Text>
+                {/* Content */}
+                <View style={styles.content}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.categoryPill}>
+                            <Text style={styles.categoryText}>{product.category}</Text>
+                        </View>
+                        {product.stock <= 5 && (
+                            <Text style={styles.lowStock}>
+                                {t('home.lowStock')} ({product.stock})
+                            </Text>
+                        )}
                     </View>
+
+                    <Text style={styles.name}>{product.name}</Text>
+                    <Text style={styles.price}>{formatPrice(product.price, currency)}</Text>
+
                     <Text style={styles.description}>{product.description}</Text>
 
                     {/* Specs */}
-                    {product.specs && product.specs.length > 0 && (
-                        <View style={styles.specsSection}>
-                            <Text style={styles.specsTitle}>{t('details.specifications')}</Text>
-                            {product.specs.map((spec, index) => (
-                                <View key={index} style={styles.specRow}>
-                                    <View style={styles.specDot} />
-                                    <Text style={styles.specText}>{spec}</Text>
+                    {Object.keys(specs).length > 0 && (
+                        <View style={styles.specsCard}>
+                            <Text style={styles.sectionTitle}>{t('details.specifications')}</Text>
+                            {Object.entries(specs).map(([key, value]) => (
+                                <View key={key} style={styles.specRow}>
+                                    <Text style={styles.specKey}>{key}</Text>
+                                    <Text style={styles.specValue}>{String(value)}</Text>
                                 </View>
                             ))}
                         </View>
                     )}
 
-                    {/* Quantity Selector */}
-                    <View style={styles.quantitySection}>
-                        <Text style={styles.quantityLabel}>{t('details.quantity')}</Text>
-                        <View style={styles.quantityControls}>
-                            <TouchableOpacity
-                                style={[styles.qtyBtn, quantity <= 1 && styles.qtyBtnDisabled]}
-                                onPress={decrementQty}
-                                disabled={quantity <= 1}
-                            >
-                                <Minus
-                                    size={18}
-                                    color={quantity <= 1 ? COLORS.textSecondary : COLORS.white}
-                                />
-                            </TouchableOpacity>
-                            <Text style={styles.quantityValue}>{quantity}</Text>
-                            <TouchableOpacity
-                                style={[
-                                    styles.qtyBtn,
-                                    quantity >= product.stock && styles.qtyBtnDisabled,
-                                ]}
-                                onPress={incrementQty}
-                                disabled={quantity >= product.stock}
-                            >
-                                <Plus
-                                    size={18}
-                                    color={
-                                        quantity >= product.stock
-                                            ? COLORS.textSecondary
-                                            : COLORS.white
-                                    }
-                                />
-                            </TouchableOpacity>
-                        </View>
+                    {/* Features */}
+                    <View style={styles.features}>
+                        {[
+                            { icon: Package, label: t('details.freeReturns') || 'Free Returns' },
+                            { icon: Shield, label: t('details.warranty') || '1 Year Warranty' },
+                            { icon: Truck, label: t('details.fastShipping') || 'Fast Shipping' },
+                        ].map((item, idx) => (
+                            <View key={idx} style={styles.featureItem}>
+                                <View style={styles.featureIcon}>
+                                    <item.icon size={16} color={COLORS.black} />
+                                </View>
+                                <Text style={styles.featureText}>{item.label}</Text>
+                            </View>
+                        ))}
                     </View>
                 </View>
             </ScrollView>
 
-            {/* Floating Add to Cart */}
-            <View style={styles.floatingBar}>
-                <View style={styles.floatingPrice}>
-                    <Text style={styles.floatingLabel}>{t('details.total')}</Text>
-                    <Text style={styles.floatingTotal}>
-                        {formatPrice(product.price * quantity, currency)}
-                    </Text>
+            {/* Bottom Bar */}
+            <View style={styles.bottomBar}>
+                <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                        style={styles.qtyBtn}
+                        onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                        <Minus size={16} color={COLORS.black} />
+                    </TouchableOpacity>
+                    <Text style={styles.qtyText}>{quantity}</Text>
+                    <TouchableOpacity
+                        style={styles.qtyBtn}
+                        onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                        disabled={quantity >= product.stock}
+                    >
+                        <Plus
+                            size={16}
+                            color={quantity >= product.stock ? COLORS.textSecondary : COLORS.black}
+                        />
+                    </TouchableOpacity>
                 </View>
-                <CustomButton
-                    title={t('details.addToCart')}
+                <TouchableOpacity
+                    style={[styles.addToCartBtn, addedToCart && styles.addedBtn]}
                     onPress={handleAddToCart}
-                    icon={<ShoppingCart size={18} color={COLORS.white} />}
-                    style={styles.addButton}
-                />
+                    activeOpacity={0.85}
+                    disabled={product.stock === 0}
+                >
+                    <ShoppingCart size={18} color={COLORS.white} />
+                    <Text style={styles.addToCartText}>
+                        {addedToCart ? t('details.added') || 'Added!' : t('details.addToCart') || 'Add to Cart'}
+                    </Text>
+                </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -204,7 +190,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
     },
-    loadingContainer: {
+    loadingWrap: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
@@ -213,77 +199,75 @@ const styles = StyleSheet.create({
         color: COLORS.textSecondary,
         fontSize: 16,
     },
-    heroContainer: {
-        width: width,
-        height: width * 0.85,
-        backgroundColor: COLORS.cardLight,
+    imageSection: {
+        width: '100%',
+        aspectRatio: 1,
+        backgroundColor: COLORS.card,
+        alignItems: 'center',
+        justifyContent: 'center',
         position: 'relative',
     },
-    heroImage: {
-        width: '100%',
-        height: '100%',
-    },
-    heroOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.15)',
-    },
-    backBtnContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 16,
-        zIndex: 10,
-    },
     backBtn: {
+        position: 'absolute',
+        top: 12,
+        left: 16,
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: COLORS.white,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 8,
-    },
-    categoryTag: {
-        position: 'absolute',
-        bottom: 16,
-        left: 16,
-        backgroundColor: COLORS.primary,
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 8,
         zIndex: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 3,
     },
-    categoryTagText: {
-        color: COLORS.white,
-        fontSize: 12,
-        fontWeight: '700',
+    image: {
+        width: '80%',
+        height: '80%',
     },
-    infoSection: {
+    content: {
         padding: 20,
         paddingBottom: 120,
     },
-    productName: {
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    categoryPill: {
+        backgroundColor: COLORS.black,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    categoryText: {
+        color: COLORS.white,
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    lowStock: {
+        color: COLORS.warning,
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    name: {
         color: COLORS.textPrimary,
-        fontSize: 26,
+        fontSize: 24,
         fontWeight: '800',
         letterSpacing: -0.5,
         marginBottom: 8,
     },
-    productPrice: {
-        color: COLORS.primary,
+    price: {
+        color: COLORS.black,
         fontSize: 28,
         fontWeight: '800',
-        marginBottom: 12,
-    },
-    stockRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
         marginBottom: 16,
-    },
-    stockText: {
-        color: COLORS.success,
-        fontSize: 13,
-        fontWeight: '600',
     },
     description: {
         color: COLORS.textSecondary,
@@ -291,102 +275,114 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         marginBottom: 24,
     },
-    specsSection: {
+    specsCard: {
+        backgroundColor: COLORS.card,
+        borderRadius: 16,
+        padding: 16,
         marginBottom: 24,
     },
-    specsTitle: {
+    sectionTitle: {
         color: COLORS.textPrimary,
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '700',
         marginBottom: 12,
     },
     specRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingVertical: 8,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: COLORS.border,
-        gap: 10,
     },
-    specDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: COLORS.primary,
-    },
-    specText: {
-        color: COLORS.textPrimary,
+    specKey: {
+        color: COLORS.textSecondary,
         fontSize: 14,
         fontWeight: '500',
     },
-    quantitySection: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: COLORS.card,
-        padding: 16,
-        borderRadius: 16,
-    },
-    quantityLabel: {
+    specValue: {
         color: COLORS.textPrimary,
-        fontSize: 16,
-        fontWeight: '700',
+        fontSize: 14,
+        fontWeight: '600',
     },
-    quantityControls: {
+    features: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
+        justifyContent: 'space-between',
     },
-    qtyBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        backgroundColor: COLORS.cardLight,
+    featureItem: {
+        alignItems: 'center',
+        gap: 6,
+        flex: 1,
+    },
+    featureIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: COLORS.card,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    qtyBtnDisabled: {
-        opacity: 0.5,
-    },
-    quantityValue: {
-        color: COLORS.textPrimary,
-        fontSize: 18,
-        fontWeight: '800',
-        minWidth: 24,
+    featureText: {
+        color: COLORS.textSecondary,
+        fontSize: 11,
+        fontWeight: '600',
         textAlign: 'center',
     },
-    floatingBar: {
+    bottomBar: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: COLORS.card,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
         paddingBottom: 34,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        backgroundColor: COLORS.background,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: COLORS.border,
+        gap: 12,
     },
-    floatingPrice: {
-        gap: 2,
+    quantityControl: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.card,
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        height: 48,
+        gap: 12,
     },
-    floatingLabel: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        fontWeight: '600',
+    qtyBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: COLORS.white,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    floatingTotal: {
+    qtyText: {
         color: COLORS.textPrimary,
-        fontSize: 22,
-        fontWeight: '800',
+        fontSize: 16,
+        fontWeight: '700',
+        minWidth: 20,
+        textAlign: 'center',
     },
-    addButton: {
-        paddingHorizontal: 28,
+    addToCartBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.black,
+        borderRadius: 12,
+        height: 48,
+        gap: 8,
+    },
+    addedBtn: {
+        backgroundColor: COLORS.success,
+    },
+    addToCartText: {
+        color: COLORS.white,
+        fontSize: 16,
+        fontWeight: '700',
     },
 });
 

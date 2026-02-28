@@ -35,7 +35,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, currency: currencyProp }) 
                             style={styles.qtyBtn}
                             onPress={() => onUpdateQuantity(item.id, item.quantity - 1)}
                         >
-                            <Minus size={14} color={COLORS.white} />
+                            <Minus size={14} color={COLORS.black} />
                         </TouchableOpacity>
                         <Text style={styles.quantity}>{item.quantity}</Text>
                         <TouchableOpacity
@@ -48,7 +48,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, currency: currencyProp }) 
                                 color={
                                     item.quantity >= item.stock
                                         ? COLORS.textSecondary
-                                        : COLORS.white
+                                        : COLORS.black
                                 }
                             />
                         </TouchableOpacity>

@@ -1,17 +1,29 @@
 export const COLORS = {
-  primary: '#007AFF',
-  background: '#1C1C1E',
+  // ─── Premium B&W Palette ───
+  primary: '#000000',
+  accent: '#FFFFFF',
+  background: '#FFFFFF',
+  backgroundDark: '#000000',
   white: '#FFFFFF',
-  card: '#2C2C2E',
-  cardLight: '#3A3A3C',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textDark: '#1C1C1E',
-  border: '#38383A',
-  success: '#34C759',
-  danger: '#FF3B30',
-  warning: '#FF9500',
-  shadow: 'rgba(0, 0, 0, 0.3)',
+  black: '#000000',
+
+  // Cards & Surfaces
+  card: '#F5F5F5',
+  cardLight: '#EBEBEB',
+  inputBg: '#F5F5F5',
+
+  // Text
+  textPrimary: '#111111',
+  textSecondary: '#6B6B6B',
+  textOnDark: '#FFFFFF',
+
+  // Borders & Shadows
+  border: '#E0E0E0',
+  shadow: 'rgba(0, 0, 0, 0.08)',
   overlay: 'rgba(0, 0, 0, 0.5)',
-  inputBg: '#2C2C2E',
+
+  // Semantic
+  success: '#1DB954',
+  danger: '#E53935',
+  warning: '#FB8C00',
 };

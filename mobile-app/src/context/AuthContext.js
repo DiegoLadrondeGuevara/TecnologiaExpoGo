@@ -10,6 +10,7 @@ const TOKEN_KEY = 'techstore_jwt';
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [justLoggedIn, setJustLoggedIn] = useState(false);
 
     // On mount: try to restore session from AsyncStorage
     useEffect(() => {
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.setItem(TOKEN_KEY, access_token);
         setAuthToken(access_token);
         setUser(userData);
+        setJustLoggedIn(true);
 
         return userData;
     }, []);
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.setItem(TOKEN_KEY, access_token);
         setAuthToken(access_token);
         setUser(userData);
+        setJustLoggedIn(true);
 
         return userData;
     }, []);
@@ -61,14 +64,23 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.removeItem(TOKEN_KEY);
         clearAuthToken();
         setUser(null);
+        setJustLoggedIn(false);
+    }, []);
+
+    // Update user data locally (used by SettingsScreen after PATCH /users/me)
+    const updateUser = useCallback((data) => {
+        setUser((prev) => (prev ? { ...prev, ...data } : data));
     }, []);
 
     return (
         <AuthContext.Provider
             value={{
                 user,
+                setUser: updateUser,
                 isLoading,
                 isAuthenticated: !!user,
+                justLoggedIn,
+                setJustLoggedIn,
                 login,
                 register,
                 logout,

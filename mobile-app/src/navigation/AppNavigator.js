@@ -17,6 +17,9 @@ import PaymentScreen from '../screens/PaymentScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import MyOrdersScreen from '../screens/MyOrdersScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import SupportScreen from '../screens/SupportScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,6 +52,9 @@ const ProfileStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Support" component={SupportScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
 );
 
@@ -64,7 +70,7 @@ const CartBadge = ({ count }) => {
 // ─── Loading Screen ───
 const LoadingScreen = () => (
     <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.black} />
     </View>
 );
 
@@ -88,7 +94,7 @@ const AppNavigator = () => {
                     screenOptions={{
                         headerShown: false,
                         tabBarStyle: styles.tabBar,
-                        tabBarActiveTintColor: COLORS.primary,
+                        tabBarActiveTintColor: COLORS.black,
                         tabBarInactiveTintColor: COLORS.textSecondary,
                         tabBarLabelStyle: styles.tabLabel,
                     }}

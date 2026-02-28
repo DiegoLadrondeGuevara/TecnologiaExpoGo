@@ -58,7 +58,7 @@ const LoginScreen = ({ navigation }) => {
                     {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.logoContainer}>
-                            <LogIn size={36} color={COLORS.primary} />
+                            <LogIn size={36} color={COLORS.black} />
                         </View>
                         <Text style={styles.title}>Welcome Back</Text>
                         <Text style={styles.subtitle}>
@@ -173,10 +173,12 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 20,
-        backgroundColor: 'rgba(0, 122, 255, 0.12)',
+        backgroundColor: COLORS.card,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border,
     },
     title: {
         color: COLORS.textPrimary,
@@ -191,12 +193,12 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     errorContainer: {
-        backgroundColor: 'rgba(255, 59, 48, 0.12)',
+        backgroundColor: 'rgba(229, 57, 53, 0.08)',
         borderRadius: 12,
         padding: 14,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255, 59, 48, 0.25)',
+        borderColor: 'rgba(229, 57, 53, 0.2)',
     },
     errorText: {
         color: COLORS.danger,
@@ -239,15 +241,15 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     button: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.black,
         borderRadius: 14,
         height: 52,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 4,
-        shadowColor: COLORS.primary,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.15,
         shadowRadius: 8,
         elevation: 4,
     },
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     footerLink: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 14,
         fontWeight: '700',
     },

@@ -1,112 +1,134 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Settings, Bell, HelpCircle, LogOut, Globe, ShoppingBag } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+import {
+    User,
+    Settings,
+    ShoppingBag,
+    HelpCircle,
+    LogOut,
+    ChevronRight,
+    Bell,
+    Globe,
+} from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const ProfileScreen = ({ navigation }) => {
-    const { t, locale, currency, toggleLanguage } = useLanguage();
     const { user, logout } = useAuth();
+    const { t, locale, toggleLanguage } = useLanguage();
 
-    const handleSignOut = () => {
+    const handleLogout = () => {
         Alert.alert(
-            'Sign Out',
-            'Are you sure you want to sign out?',
+            t('profile.signOut') || 'Sign Out',
+            t('profile.signOutConfirm') || 'Are you sure you want to sign out?',
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel') || 'Cancel', style: 'cancel' },
                 {
-                    text: 'Sign Out',
+                    text: t('profile.signOut') || 'Sign Out',
                     style: 'destructive',
-                    onPress: () => logout(),
+                    onPress: logout,
                 },
-            ]
+            ],
         );
     };
 
     const menuItems = [
-        { icon: ShoppingBag, label: locale === 'es' ? 'Mis Pedidos' : 'My Orders', onPress: () => navigation.navigate('MyOrders') },
-        { icon: Bell, label: t('profile.notifications'), badge: '3' },
-        { icon: Globe, label: t('profile.switchLanguage'), subtitle: `${locale.toUpperCase()} / ${currency}`, onPress: toggleLanguage },
-        { icon: Settings, label: t('profile.settings') },
-        { icon: HelpCircle, label: t('profile.helpSupport') },
-        { icon: LogOut, label: t('profile.signOut'), danger: true, onPress: handleSignOut },
+        {
+            icon: ShoppingBag,
+            label: t('profile.myOrders') || 'My Orders',
+            onPress: () => navigation.navigate('MyOrders'),
+        },
+        {
+            icon: Bell,
+            label: t('profile.notifications') || 'Notifications',
+            onPress: () => navigation.navigate('Notifications'),
+        },
+        {
+            icon: Settings,
+            label: t('profile.settings') || 'Settings',
+            onPress: () => navigation.navigate('Settings'),
+        },
+        {
+            icon: HelpCircle,
+            label: t('profile.helpSupport') || 'Help & Support',
+            onPress: () => navigation.navigate('Support'),
+        },
+        {
+            icon: Globe,
+            label: t('profile.language') || 'Language',
+            badge: locale.toUpperCase(),
+            onPress: toggleLanguage,
+        },
     ];
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Text style={styles.screenTitle}>{t('profile.title')}</Text>
-
-            {/* Avatar Section */}
-            <View style={styles.avatarSection}>
-                <View style={styles.avatarContainer}>
-                    <User size={40} color={COLORS.primary} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>{t('profile.title') || 'Profile'}</Text>
                 </View>
-                <Text style={styles.userName}>{user?.name || 'Tech Shopper'}</Text>
-                <Text style={styles.userEmail}>{user?.email || 'user@techstore.com'}</Text>
-                {user?.role && (
-                    <View style={styles.roleBadge}>
-                        <Text style={styles.roleText}>{user.role}</Text>
+
+                {/* User Card */}
+                <View style={styles.userCard}>
+                    <View style={styles.avatar}>
+                        <User size={28} color={COLORS.black} />
                     </View>
-                )}
-            </View>
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{user?.name || 'User'}</Text>
+                        <Text style={styles.userEmail}>{user?.email || ''}</Text>
+                    </View>
+                </View>
 
-            {/* Stats */}
-            <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>—</Text>
-                    <Text style={styles.statLabel}>{t('profile.orders')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>—</Text>
-                    <Text style={styles.statLabel}>{t('profile.wishlist')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>—</Text>
-                    <Text style={styles.statLabel}>{t('profile.spent')}</Text>
-                </View>
-            </View>
-
-            {/* Menu */}
-            <View style={styles.menuSection}>
-                {menuItems.map((item, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        style={styles.menuItem}
-                        activeOpacity={0.7}
-                        onPress={item.onPress}
-                    >
-                        <View style={styles.menuLeft}>
-                            <View style={[styles.menuIcon, item.danger && styles.menuIconDanger]}>
-                                <item.icon
-                                    size={18}
-                                    color={item.danger ? COLORS.danger : COLORS.primary}
-                                />
+                {/* Menu */}
+                <View style={styles.menuCard}>
+                    {menuItems.map((item, idx) => (
+                        <TouchableOpacity
+                            key={idx}
+                            style={[
+                                styles.menuItem,
+                                idx < menuItems.length - 1 && styles.menuItemBorder,
+                            ]}
+                            onPress={item.onPress}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.menuLeft}>
+                                <View style={styles.menuIcon}>
+                                    <item.icon size={18} color={COLORS.black} />
+                                </View>
+                                <Text style={styles.menuLabel}>{item.label}</Text>
                             </View>
-                            <View>
-                                <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
-                                    {item.label}
-                                </Text>
-                                {item.subtitle && (
-                                    <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                {item.badge && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>{item.badge}</Text>
+                                    </View>
                                 )}
+                                <ChevronRight size={18} color={COLORS.textSecondary} />
                             </View>
-                        </View>
-                        {item.badge && (
-                            <View style={styles.menuBadge}>
-                                <Text style={styles.menuBadgeText}>{item.badge}</Text>
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                ))}
-            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
-            {/* App Info */}
-            <Text style={styles.version}>{t('profile.version')}</Text>
+                {/* Logout */}
+                <TouchableOpacity
+                    style={styles.logoutBtn}
+                    onPress={handleLogout}
+                    activeOpacity={0.7}
+                >
+                    <LogOut size={18} color={COLORS.danger} />
+                    <Text style={styles.logoutText}>{t('profile.signOut') || 'Sign Out'}</Text>
+                </TouchableOpacity>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -116,94 +138,68 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
     },
-    screenTitle: {
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 20,
+    },
+    headerTitle: {
         color: COLORS.textPrimary,
         fontSize: 28,
         fontWeight: '800',
         letterSpacing: -0.5,
-        paddingHorizontal: 16,
-        paddingTop: 8,
-        paddingBottom: 16,
     },
-    avatarSection: {
+    userCard: {
+        flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 20,
         paddingVertical: 20,
-    },
-    avatarContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        marginHorizontal: 16,
         backgroundColor: COLORS.card,
+        borderRadius: 16,
+        marginBottom: 24,
+        gap: 14,
+    },
+    avatar: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: COLORS.white,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 12,
         borderWidth: 2,
-        borderColor: COLORS.primary,
+        borderColor: COLORS.border,
+    },
+    userInfo: {
+        flex: 1,
     },
     userName: {
         color: COLORS.textPrimary,
-        fontSize: 22,
-        fontWeight: '800',
+        fontSize: 18,
+        fontWeight: '700',
     },
     userEmail: {
         color: COLORS.textSecondary,
         fontSize: 14,
         fontWeight: '500',
-        marginTop: 4,
+        marginTop: 2,
     },
-    roleBadge: {
-        marginTop: 8,
-        backgroundColor: 'rgba(0, 122, 255, 0.12)',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    roleText: {
-        color: COLORS.primary,
-        fontSize: 11,
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.card,
+    menuCard: {
         marginHorizontal: 16,
+        backgroundColor: COLORS.card,
         borderRadius: 16,
-        paddingVertical: 16,
-        marginTop: 8,
         marginBottom: 24,
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    statValue: {
-        color: COLORS.primary,
-        fontSize: 20,
-        fontWeight: '800',
-    },
-    statLabel: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        fontWeight: '600',
-        marginTop: 4,
-    },
-    statDivider: {
-        width: StyleSheet.hairlineWidth,
-        backgroundColor: COLORS.border,
-    },
-    menuSection: {
-        paddingHorizontal: 16,
-        gap: 4,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: COLORS.card,
-        padding: 14,
-        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+    },
+    menuItemBorder: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: COLORS.border,
     },
     menuLeft: {
         flexDirection: 'row',
@@ -214,46 +210,43 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 10,
-        backgroundColor: 'rgba(0, 122, 255, 0.12)',
+        backgroundColor: COLORS.white,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    menuIconDanger: {
-        backgroundColor: 'rgba(255, 59, 48, 0.12)',
     },
     menuLabel: {
         color: COLORS.textPrimary,
         fontSize: 15,
         fontWeight: '600',
     },
-    menuLabelDanger: {
-        color: COLORS.danger,
-    },
-    menuSubtitle: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        fontWeight: '500',
-        marginTop: 2,
-    },
-    menuBadge: {
-        backgroundColor: COLORS.danger,
-        minWidth: 20,
-        height: 20,
-        borderRadius: 10,
+    logoutBtn: {
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 6,
+        marginHorizontal: 16,
+        paddingVertical: 16,
+        gap: 8,
+        backgroundColor: 'rgba(229, 57, 53, 0.06)',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(229, 57, 53, 0.15)',
     },
-    menuBadgeText: {
-        color: COLORS.white,
-        fontSize: 11,
+    logoutText: {
+        color: COLORS.danger,
+        fontSize: 15,
         fontWeight: '700',
     },
-    version: {
-        color: COLORS.textSecondary,
-        fontSize: 12,
-        textAlign: 'center',
-        marginTop: 24,
+    badge: {
+        backgroundColor: COLORS.black,
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+    },
+    badgeText: {
+        color: COLORS.white,
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 0.5,
     },
 });
 

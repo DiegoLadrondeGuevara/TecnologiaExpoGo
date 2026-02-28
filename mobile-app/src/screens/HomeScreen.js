@@ -8,9 +8,12 @@ import {
     RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../theme/colors';
 import { getProducts, getCategories } from '../api/productService';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
 import CategorySelector from '../components/CategorySelector';
@@ -25,6 +28,23 @@ const HomeScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const { t, currency } = useLanguage();
+    const { user, justLoggedIn, setJustLoggedIn } = useAuth();
+    const { showNotification } = useNotification();
+
+    // ─── Welcome notification on login ───
+    useEffect(() => {
+        if (justLoggedIn && user) {
+            showNotification({
+                title: `${t('home.greeting_morning') ? '👋' : '👋'} ${t('notification.welcome') || 'Welcome back!'}`,
+                message: user.name
+                    ? `${t('notification.welcomeMessage') || 'Great to see you'}, ${user.name}`
+                    : t('notification.welcomeMessage') || 'Great to see you!',
+                type: 'success',
+                duration: 4000,
+            });
+            setJustLoggedIn(false);
+        }
+    }, [justLoggedIn]);
 
     const fetchData = useCallback(async () => {
         try {
@@ -43,9 +63,12 @@ const HomeScreen = ({ navigation }) => {
         }
     }, []);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    // Re-fetch products every time screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
 
     useEffect(() => {
         let results = products;
@@ -103,7 +126,7 @@ const HomeScreen = ({ navigation }) => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={COLORS.black} />
                     <Text style={styles.loadingText}>{t('home.loadingProducts')}</Text>
                 </View>
             </SafeAreaView>
@@ -136,7 +159,7 @@ const HomeScreen = ({ navigation }) => {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            tintColor={COLORS.primary}
+                            tintColor={COLORS.black}
                         />
                     }
                 />
@@ -186,9 +209,11 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 12,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
     },
     badgeText: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 18,
         fontWeight: '800',
     },

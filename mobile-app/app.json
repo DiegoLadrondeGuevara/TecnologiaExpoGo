@@ -3,6 +3,7 @@
     "name": "ReactMobile",
     "slug": "ReactMobile",
     "version": "1.0.0",
+    "scheme": "techstore",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

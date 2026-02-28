@@ -70,7 +70,7 @@ const RegisterScreen = ({ navigation }) => {
                     {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.logoContainer}>
-                            <UserPlus size={36} color={COLORS.primary} />
+                            <UserPlus size={36} color={COLORS.black} />
                         </View>
                         <Text style={styles.title}>Create Account</Text>
                         <Text style={styles.subtitle}>
@@ -231,10 +231,12 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 20,
-        backgroundColor: 'rgba(0, 122, 255, 0.12)',
+        backgroundColor: COLORS.card,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
+        borderWidth: 1,
+        borderColor: COLORS.border,
     },
     title: {
         color: COLORS.textPrimary,
@@ -297,15 +299,15 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     button: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.black,
         borderRadius: 14,
         height: 52,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 4,
-        shadowColor: COLORS.primary,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.15,
         shadowRadius: 8,
         elevation: 4,
     },
@@ -328,7 +330,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     footerLink: {
-        color: COLORS.primary,
+        color: COLORS.black,
         fontSize: 14,
         fontWeight: '700',
     },
