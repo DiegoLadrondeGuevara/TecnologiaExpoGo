@@ -41,18 +41,33 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
 const bcrypt = __importStar(require("bcrypt"));
 const prisma_service_1 = require("../prisma/prisma.service");
-let AuthService = class AuthService {
+const google_auth_library_1 = require("google-auth-library");
+let AuthService = AuthService_1 = class AuthService {
     prisma;
     jwtService;
-    constructor(prisma, jwtService) {
+    configService;
+    logger = new common_1.Logger(AuthService_1.name);
+    googleClient;
+    constructor(prisma, jwtService, configService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
+        this.configService = configService;
+        const googleClientId = this.configService.get('GOOGLE_CLIENT_ID');
+        this.googleClient = new google_auth_library_1.OAuth2Client(googleClientId);
+        if (googleClientId) {
+            this.logger.log('✅ Google OAuth configured');
+        }
+        else {
+            this.logger.warn('GOOGLE_CLIENT_ID not set — Google login will not work');
+        }
     }
     async register(data) {
         const existing = await this.prisma.user.findUnique({
@@ -91,10 +106,19 @@ let AuthService = class AuthService {
             access_token: token,
         };
     }
-    async login(email, password) {
-        const user = await this.prisma.user.findUnique({ where: { email } });
+    async login(identifier, password) {
+        let user;
+        if (identifier.includes('@')) {
+            user = await this.prisma.user.findUnique({ where: { email: identifier } });
+        }
+        else {
+            user = await this.prisma.user.findUnique({ where: { username: identifier } });
+        }
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
+        }
+        if (!user.passwordHash) {
+            throw new common_1.UnauthorizedException('This account uses Google login. Please sign in with Google.');
         }
         const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
         if (!isPasswordValid) {
@@ -107,6 +131,70 @@ let AuthService = class AuthService {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                avatarUrl: user.avatarUrl,
+            },
+            access_token: token,
+        };
+    }
+    async loginWithGoogle(idToken) {
+        const googleClientId = this.configService.get('GOOGLE_CLIENT_ID');
+        const ticket = await this.googleClient.verifyIdToken({
+            idToken,
+            audience: googleClientId,
+        });
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
+            throw new common_1.UnauthorizedException('Invalid Google token');
+        }
+        const { sub: googleId, email, name, picture } = payload;
+        let user = await this.prisma.user.findUnique({
+            where: { googleId: googleId },
+        });
+        if (!user) {
+            user = await this.prisma.user.findUnique({
+                where: { email },
+            });
+            if (user) {
+                user = await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        googleId: googleId,
+                        avatarUrl: user.avatarUrl || picture,
+                    },
+                });
+                this.logger.log(`🔗 Linked Google account to existing user: ${email}`);
+            }
+            else {
+                let empresa = await this.prisma.empresa.findFirst();
+                if (!empresa) {
+                    empresa = await this.prisma.empresa.create({
+                        data: { name: 'TechStore' },
+                    });
+                    await this.prisma.appConfig.create({
+                        data: { empresaId: empresa.id },
+                    });
+                }
+                user = await this.prisma.user.create({
+                    data: {
+                        name: name || email.split('@')[0],
+                        email,
+                        googleId: googleId,
+                        avatarUrl: picture,
+                        role: 'CUSTOMER',
+                        empresaId: empresa.id,
+                    },
+                });
+                this.logger.log(`✨ Created new user via Google: ${email}`);
+            }
+        }
+        const token = this.generateToken(user);
+        return {
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatarUrl: user.avatarUrl,
             },
             access_token: token,
         };
@@ -117,9 +205,10 @@ let AuthService = class AuthService {
     }
 };
 exports.AuthService = AuthService;
-exports.AuthService = AuthService = __decorate([
+exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        config_1.ConfigService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

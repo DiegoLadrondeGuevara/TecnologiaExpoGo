@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     ActivityIndicator,
     TouchableOpacity,
+    BackHandler,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -13,16 +15,17 @@ import { COLORS } from '../theme/colors';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
-import { createPaymentPreference, MP_CALLBACK_URLS } from '../api/paymentService';
+import { createPaymentPreference, confirmPayment, cancelOrder } from '../api/paymentService';
 
-const PaymentScreen = ({ route, navigation }) => {
-    const { orderId } = route.params || {};
+const PaymentScreen = ({ route, navigation }) => {    const { orderId } = route.params || {};
     const { clearCart } = useCart();
     const { t } = useLanguage();
     const { showNotification } = useNotification();
     const [initPoint, setInitPoint] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [paymentResult, setPaymentResult] = useState(null); // 'success' | 'failure' | 'pending'
+    const [paymentResult, setPaymentResult] = useState(null);
+    const processedRef = useRef(false);
+    const cancelledRef = useRef(false);
 
     useEffect(() => {
         const initPayment = async () => {
@@ -43,19 +46,53 @@ const PaymentScreen = ({ route, navigation }) => {
         initPayment();
     }, [orderId]);
 
-    const handleNavigationStateChange = (navState) => {
-        const { url } = navState;
+    /**
+     * Cancel the pending order when user exits without completing payment.
+     */
+    const handleCancelAndGoBack = useCallback(async () => {
+        if (cancelledRef.current || processedRef.current) {
+            navigation.goBack();
+            return;
+        }
+        cancelledRef.current = true;
 
-        // MercadoPago returns results via URL parameters in the redirect
-        // Check for collection_status or status query params
-        const getParam = (name) => {
-            const match = url.match(new RegExp('[?&]' + name + '=([^&]+)'));
-            return match ? match[1] : null;
-        };
+        try {
+            await cancelOrder(orderId);
+            console.log('🗑️ Pending order cancelled:', orderId);
+        } catch (err) {
+            console.warn('Could not cancel order:', err.message);
+        }
+        navigation.goBack();
+    }, [orderId, navigation]);
 
-        const collectionStatus = getParam('collection_status');
-        const status = getParam('status');
+    // Handle Android hardware back button
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (!paymentResult) {
+                handleCancelAndGoBack();
+                return true;
+            }
+            return false;
+        });
+        return () => backHandler.remove();
+    }, [paymentResult, handleCancelAndGoBack]);
+
+    const getParam = (url, name) => {
+        const match = url.match(new RegExp('[?&]' + name + '=([^&]+)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    };
+
+    const processPaymentUrl = async (url) => {
+        if (processedRef.current) return;
+        processedRef.current = true;
+
+        const collectionStatus = getParam(url, 'collection_status');
+        const status = getParam(url, 'status');
+        const paymentId = getParam(url, 'payment_id');
+        const externalRef = getParam(url, 'external_reference');
         const effectiveStatus = collectionStatus || status;
+
+        console.log('📦 Processing payment result:', effectiveStatus, 'paymentId:', paymentId);
 
         if (effectiveStatus === 'approved') {
             setPaymentResult('success');
@@ -66,52 +103,90 @@ const PaymentScreen = ({ route, navigation }) => {
                 type: 'success',
                 duration: 5000,
             });
-        } else if (effectiveStatus === 'rejected' || effectiveStatus === 'null') {
-            // MP returns status=null when card is rejected
-            if (url.includes('payment/failure') || effectiveStatus === 'rejected' || (effectiveStatus === 'null' && url.includes('failure'))) {
-                setPaymentResult('failure');
+            // Confirm with backend → marks order as paid + decrements stock
+            try {
+                await confirmPayment(externalRef || orderId, paymentId || 'unknown', 'approved');
+                console.log('✅ Payment confirmed with backend');
+            } catch (err) {
+                console.warn('Could not confirm with backend:', err.message);
+            }
+        } else if (effectiveStatus === 'rejected' || url.includes('/failure')) {
+            setPaymentResult('failure');
+            // Cancel the failed order
+            try {
+                await cancelOrder(orderId);
+            } catch (err) {
+                console.warn('Could not cancel failed order:', err.message);
             }
         } else if (effectiveStatus === 'in_process' || effectiveStatus === 'pending') {
             setPaymentResult('pending');
-        }
-
-        // Also catch deep link attempts (as fallback)
-        if (url.startsWith('techstore://')) {
-            if (url.includes('success')) {
+            // Keep the order as pending — MP is genuinely processing
+        } else {
+            // Determine by URL path
+            if (url.includes('/success')) {
                 setPaymentResult('success');
                 clearCart();
-            } else if (url.includes('failure')) {
+            } else if (url.includes('/failure')) {
                 setPaymentResult('failure');
-            } else if (url.includes('pending')) {
+                try { await cancelOrder(orderId); } catch (_) { }
+            } else if (url.includes('/pending')) {
                 setPaymentResult('pending');
             }
         }
     };
 
-    // Payment Result Screen
+    const handleShouldStartLoad = (request) => {
+        const { url } = request;
+
+        if (url.includes('techstore.app/payment/')) {
+            processPaymentUrl(url);
+            return false;
+        }
+
+        if (url.startsWith('techstore://')) {
+            processPaymentUrl(url);
+            return false;
+        }
+
+        if (url.includes('collection_status=') && !url.includes('mercadopago.com')) {
+            processPaymentUrl(url);
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleNavigationStateChange = (navState) => {
+        const { url } = navState;
+        if (url.includes('techstore.app/payment/') || url.includes('techstore://')) {
+            processPaymentUrl(url);
+        }
+    };
+
+    // ─── Payment Result Screen ─────────────────────────────────────
     if (paymentResult) {
         const configs = {
             success: {
                 icon: <CheckCircle size={64} color={COLORS.success} />,
-                title: t('payment.success'),
-                message: t('payment.successMessage'),
-                buttonText: t('payment.returnHome'),
+                title: t('payment.success') || 'Payment Successful',
+                message: t('payment.successMessage') || 'Your order has been confirmed!',
+                buttonText: t('payment.returnHome') || 'Return Home',
                 buttonAction: () => navigation.navigate('HomeTab'),
                 color: COLORS.success,
             },
             failure: {
                 icon: <XCircle size={64} color={COLORS.danger} />,
-                title: t('payment.failure'),
-                message: t('payment.failureMessage'),
-                buttonText: t('payment.tryAgain'),
+                title: t('payment.failure') || 'Payment Failed',
+                message: t('payment.failureMessage') || 'Something went wrong. Please try again.',
+                buttonText: t('payment.tryAgain') || 'Try Again',
                 buttonAction: () => navigation.goBack(),
                 color: COLORS.danger,
             },
             pending: {
                 icon: <Clock size={64} color={COLORS.warning} />,
-                title: t('payment.pending'),
-                message: t('payment.pendingMessage'),
-                buttonText: t('payment.returnHome'),
+                title: t('payment.pending') || 'Payment Pending',
+                message: t('payment.pendingMessage') || 'Your payment is being processed.',
+                buttonText: t('payment.returnHome') || 'Return Home',
                 buttonAction: () => navigation.navigate('HomeTab'),
                 color: COLORS.warning,
             },
@@ -136,34 +211,36 @@ const PaymentScreen = ({ route, navigation }) => {
         );
     }
 
-    // Loading
+    // ─── Loading ───────────────────────────────────────────────────
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={COLORS.black} />
-                    <Text style={styles.loadingText}>{t('payment.processing')}</Text>
+                    <Text style={styles.loadingText}>{t('payment.processing') || 'Processing...'}</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
-    // WebView for Mercado Pago
+    // ─── WebView ───────────────────────────────────────────────────
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.backBtn}
-                    onPress={() => navigation.goBack()}
+                    onPress={handleCancelAndGoBack}
                 >
                     <ChevronLeft size={22} color={COLORS.black} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('payment.title')}</Text>
+                <Text style={styles.headerTitle}>{t('payment.title') || 'Payment'}</Text>
                 <View style={{ width: 40 }} />
             </View>
             <WebView
                 source={{ uri: initPoint }}
                 style={styles.webview}
+                originWhitelist={['https://*', 'http://*', 'techstore://*']}
+                onShouldStartLoadWithRequest={handleShouldStartLoad}
                 onNavigationStateChange={handleNavigationStateChange}
                 startInLoadingState
                 renderLoading={() => (
@@ -259,5 +336,4 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
-
 export default PaymentScreen;

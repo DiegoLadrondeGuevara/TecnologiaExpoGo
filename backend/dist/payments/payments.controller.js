@@ -42,6 +42,9 @@ let PaymentsController = class PaymentsController {
     handleWebhook(body) {
         return this.paymentsService.handleWebhook(body);
     }
+    confirmPayment(body) {
+        return this.paymentsService.confirmFromClient(body);
+    }
 };
 exports.PaymentsController = PaymentsController;
 __decorate([
@@ -68,6 +71,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "handleWebhook", null);
+__decorate([
+    (0, common_1.Post)('confirm'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PaymentsController.prototype, "confirmPayment", null);
 exports.PaymentsController = PaymentsController = __decorate([
     (0, common_1.Controller)('payments'),
     __metadata("design:paramtypes", [payments_service_1.PaymentsService])

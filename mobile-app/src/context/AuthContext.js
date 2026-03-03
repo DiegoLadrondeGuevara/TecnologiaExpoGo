@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken, clearAuthToken } from 'shared-logic/apiClient';
-import { loginUser, registerUser, getMe } from '../api/authService';
+import { loginUser, registerUser, loginWithGoogle as loginWithGoogleApi, getMe } from '../api/authService';
 
 const AuthContext = createContext();
 
@@ -34,8 +34,21 @@ export const AuthProvider = ({ children }) => {
         restoreSession();
     }, []);
 
-    const login = useCallback(async (email, password) => {
-        const response = await loginUser(email, password);
+    const login = useCallback(async (identifier, password) => {
+        const response = await loginUser(identifier, password);
+        const { user: userData, access_token } = response;
+
+        // Persist token
+        await AsyncStorage.setItem(TOKEN_KEY, access_token);
+        setAuthToken(access_token);
+        setUser(userData);
+        setJustLoggedIn(true);
+
+        return userData;
+    }, []);
+
+    const loginWithGoogle = useCallback(async (idToken) => {
+        const response = await loginWithGoogleApi(idToken);
         const { user: userData, access_token } = response;
 
         // Persist token
@@ -82,6 +95,7 @@ export const AuthProvider = ({ children }) => {
                 justLoggedIn,
                 setJustLoggedIn,
                 login,
+                loginWithGoogle,
                 register,
                 logout,
             }}

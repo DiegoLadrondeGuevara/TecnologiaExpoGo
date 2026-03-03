@@ -79,80 +79,134 @@ export default function ProductsPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                <div className="w-12 h-12 rounded-full border-4 border-gray-800 border-t-blue-500 animate-spin" />
-                <p className="text-gray-400 font-medium">{t('admin.loading')}...</p>
+                <div className="modern-spinner" />
+                <p className="font-medium animate-pulse" style={{ color: 'var(--color-text-muted)' }}>{t('admin.loading')}...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
                 <div>
-                    <h2 className="text-3xl font-black tracking-tight text-white">{t('admin.products')}</h2>
-                    <p className="text-gray-500 text-sm mt-1">{t('admin.manage_inventory', { defaultValue: 'Control total sobre tu catálogo de productos.' })}</p>
+                    <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{t('admin.products')}</h2>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.manage_inventory', { defaultValue: 'Control total sobre tu catálogo de productos.' })}</p>
                 </div>
                 <button
                     onClick={openCreate}
-                    className="flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                    className="btn-gradient flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm"
                 >
                     <Plus size={18} strokeWidth={3} /> {t('admin.addProduct')}
                 </button>
             </div>
 
-            {/* Table Container */}
-            <div className="bg-[#1c1c1e] rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
+            {/* Table */}
+            <div className="glass-card overflow-hidden animate-fade-in-up stagger-2">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-white/[0.02]">
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500"></th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('admin.productName')}</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('admin.price')}</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('admin.stock')}</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{t('admin.category')}</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 text-right">{t('admin.actions')}</th>
+                            <tr style={{ background: 'rgba(255,255,255,0.01)' }}>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}></th>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.productName')}</th>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.price')}</th>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.stock')}</th>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.category')}</th>
+                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-right" style={{ color: 'var(--color-text-muted)' }}>{t('admin.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody>
                             {products.map((p) => (
-                                <tr key={p.id} className="group hover:bg-white/[0.01] transition-colors">
+                                <tr key={p.id} className="group table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
                                     <td className="px-6 py-4 w-20">
-                                        <div className="relative group/img">
-                                            <img src={p.image_url} alt="" className="w-14 h-14 rounded-2xl object-cover bg-gray-800 border border-white/10" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 rounded-2xl transition-opacity flex items-center justify-center">
+                                        <div className="relative group/img overflow-hidden rounded-xl">
+                                            <img
+                                                src={p.image_url}
+                                                alt=""
+                                                className="w-14 h-14 rounded-xl object-cover"
+                                                style={{
+                                                    border: '1px solid rgba(255,255,255,0.06)',
+                                                    transition: 'transform 0.3s ease',
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                            />
+                                            <div
+                                                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 rounded-xl"
+                                                style={{
+                                                    background: 'rgba(0,0,0,0.5)',
+                                                    transition: 'opacity 0.2s ease',
+                                                }}
+                                            >
                                                 <ExternalLink size={14} className="text-white" />
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="space-y-1">
-                                            <p className="font-bold text-gray-100 group-hover:text-blue-400 transition-colors">{i18n.language === 'es' ? p.name_es : p.name_en}</p>
-                                            <p className="text-xs text-gray-500 font-medium line-clamp-1 max-w-xs">{i18n.language === 'es' ? p.description_es : p.description_en}</p>
+                                            <p className="font-bold" style={{ color: 'var(--color-text-primary)', transition: 'color 0.2s ease' }}>{i18n.language === 'es' ? p.name_es : p.name_en}</p>
+                                            <p className="text-xs font-medium line-clamp-1 max-w-xs" style={{ color: 'var(--color-text-muted)' }}>{i18n.language === 'es' ? p.description_es : p.description_en}</p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-black text-white">{formatPrice(p.price, currency)}</span>
+                                        <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(p.price, currency)}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${p.stock <= 5 ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'
-                                            }`}>
-                                            <div className={`w-1 h-1 rounded-full ${p.stock <= 5 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                        <div
+                                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                                            style={{
+                                                background: p.stock <= 5 ? 'rgba(245, 158, 11, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                                                color: p.stock <= 5 ? '#f59e0b' : '#10b981',
+                                            }}
+                                        >
+                                            <div
+                                                className="w-1 h-1 rounded-full"
+                                                style={{
+                                                    backgroundColor: p.stock <= 5 ? '#f59e0b' : '#10b981',
+                                                    animation: p.stock <= 5 ? 'glowPulse 2s ease-in-out infinite' : 'none',
+                                                }}
+                                            />
                                             {p.stock} Units
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[11px] font-bold text-gray-400">
+                                        <span
+                                            className="px-3 py-1 rounded-lg text-[11px] font-semibold"
+                                            style={{
+                                                background: 'rgba(255,255,255,0.03)',
+                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                color: 'var(--color-text-secondary)',
+                                            }}
+                                        >
                                             {p.category}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <button onClick={() => openEdit(p)} className="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl transition-all">
+                                        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100" style={{ transition: 'opacity 0.3s ease' }}>
+                                            <button
+                                                onClick={() => openEdit(p)}
+                                                className="p-2.5 rounded-xl"
+                                                style={{
+                                                    background: 'rgba(99, 102, 241, 0.08)',
+                                                    color: '#818cf8',
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#6366f1'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.08)'; e.currentTarget.style.color = '#818cf8'; }}
+                                            >
                                                 <Pencil size={16} />
                                             </button>
-                                            <button onClick={() => handleDelete(p.id)} className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl transition-all">
+                                            <button
+                                                onClick={() => handleDelete(p.id)}
+                                                className="p-2.5 rounded-xl"
+                                                style={{
+                                                    background: 'rgba(239, 68, 68, 0.08)',
+                                                    color: '#f87171',
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = '#f87171'; }}
+                                            >
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -164,38 +218,74 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            {/* Premium Modal */}
+            {/* ═══ MODAL ═══ */}
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+                    <div
+                        className="absolute inset-0 animate-fade-in"
+                        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+                        onClick={() => setShowModal(false)}
+                    />
 
-                    <div className="relative w-full max-w-3xl bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div
+                        className="relative w-full max-w-3xl glass-card overflow-hidden animate-scale-in"
+                        style={{
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+                        }}
+                    >
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-8 py-6 border-b border-white/5 bg-white/[0.01]">
+                        <div className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20">
-                                    <Box size={20} className="text-white" />
+                                <div
+                                    className="p-2.5 rounded-xl"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                                        boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
+                                    }}
+                                >
+                                    <Box size={18} className="text-white" />
                                 </div>
-                                <h3 className="text-xl font-black text-white">{editingId ? t('admin.editProduct') : t('admin.addProduct')}</h3>
+                                <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                    {editingId ? t('admin.editProduct') : t('admin.addProduct')}
+                                </h3>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                                <X size={24} className="text-gray-500" />
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="p-2 rounded-lg"
+                                style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+                            >
+                                <X size={22} />
                             </button>
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <div className="p-8 max-h-[70vh] overflow-y-auto">
+                            {error && (
+                                <div className="flex items-center gap-3 rounded-xl px-4 py-3 mb-6 text-sm font-medium animate-slide-down"
+                                    style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171' }}>
+                                    <AlertCircle size={16} /> {error}
+                                </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Left Side: Image Preview */}
+                                {/* Left: Image Preview */}
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Previsualización</label>
-                                    <div className="aspect-square rounded-[2rem] bg-[#2c2c2e] border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden relative group">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>Previsualización</label>
+                                    <div
+                                        className="aspect-square rounded-2xl flex items-center justify-center overflow-hidden relative group"
+                                        style={{
+                                            background: 'rgba(18,18,26,0.5)',
+                                            border: '2px dashed rgba(255,255,255,0.08)',
+                                        }}
+                                    >
                                         {form.image_url ? (
-                                            <img src={form.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                            <img src={form.image_url} alt="" className="w-full h-full object-cover" style={{ transition: 'transform 0.3s ease' }} />
                                         ) : (
                                             <div className="text-center space-y-2">
-                                                <ImageIcon size={48} className="mx-auto text-gray-700" />
-                                                <p className="text-xs font-bold text-gray-600">No Image Selected</p>
+                                                <ImageIcon size={48} style={{ color: 'var(--color-text-muted)' }} className="mx-auto" />
+                                                <p className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>No Image Selected</p>
                                             </div>
                                         )}
                                     </div>
@@ -204,10 +294,18 @@ export default function ProductsPage() {
                                         value={form.image_url}
                                         onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
                                         placeholder="URL de la imagen..."
-                                        className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                        className="glass-input w-full rounded-xl py-3 px-4 text-sm text-white"
                                     />
                                     {isCloudinaryConfigured() && (
-                                        <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/20 rounded-xl cursor-pointer transition-all text-indigo-400 text-xs font-bold mt-2">
+                                        <label
+                                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-bold mt-2"
+                                            style={{
+                                                background: 'rgba(99, 102, 241, 0.08)',
+                                                border: '1px solid rgba(99, 102, 241, 0.15)',
+                                                color: '#818cf8',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
                                             {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                                             {uploading ? 'Uploading...' : 'Upload Image'}
                                             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
@@ -215,61 +313,70 @@ export default function ProductsPage() {
                                     )}
                                 </div>
 
-                                {/* Right Side: Info */}
+                                {/* Right: Fields */}
                                 <div className="space-y-5">
-                                    <div className="grid grid-cols-1 gap-5">
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.productNameEn')}</label>
-                                            <input type="text" value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 font-bold" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.productNameEs')}</label>
-                                            <input type="text" value={form.name_es} onChange={e => setForm(f => ({ ...f, name_es: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 font-bold" />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.price')}</label>
-                                                <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 font-black" />
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.stock')}</label>
-                                                <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 font-black" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.category')}</label>
-                                            <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 cursor-pointer font-bold appearance-none">
-                                                <option value="">-- Seleccionar --</option>
-                                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                            </select>
-                                        </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.productNameEn')}</label>
+                                        <input type="text" value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white font-bold mt-1.5" />
                                     </div>
-                                </div>
-
-                                {/* Bottom inputs spanning 2 columns */}
-                                <div className="col-span-1 md:col-span-2 space-y-5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.productNameEs')}</label>
+                                        <input type="text" value={form.name_es} onChange={e => setForm(f => ({ ...f, name_es: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white font-bold mt-1.5" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.descriptionEn')}</label>
-                                            <textarea rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 text-sm resize-none" />
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.price')}</label>
+                                            <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white font-bold mt-1.5" />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.descriptionEs')}</label>
-                                            <textarea rows={3} value={form.description_es} onChange={e => setForm(f => ({ ...f, description_es: e.target.value }))} className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5 text-sm resize-none" />
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.stock')}</label>
+                                            <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white font-bold mt-1.5" />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">{t('admin.specs')} (Separado por comas)</label>
-                                        <input type="text" value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} placeholder="Ej: 16GB RAM, 512GB SSD..." className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3 px-4 text-white focus:border-blue-500/50 outline-none mt-1.5" />
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.category')}</label>
+                                        <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white font-bold mt-1.5 cursor-pointer appearance-none">
+                                            <option value="">-- Seleccionar --</option>
+                                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Bottom spanning 2 columns */}
+                                <div className="col-span-1 md:col-span-2 space-y-5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.descriptionEn')}</label>
+                                            <textarea rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white text-sm resize-none mt-1.5" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.descriptionEs')}</label>
+                                            <textarea rows={3} value={form.description_es} onChange={e => setForm(f => ({ ...f, description_es: e.target.value }))} className="glass-input w-full rounded-xl py-3 px-4 text-white text-sm resize-none mt-1.5" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.specs')} (Separado por comas)</label>
+                                        <input type="text" value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} placeholder="Ej: 16GB RAM, 512GB SSD..." className="glass-input w-full rounded-xl py-3 px-4 text-white mt-1.5" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-8 border-t border-white/5 bg-white/[0.01] flex justify-end gap-4">
-                            <button onClick={() => setShowModal(false)} className="px-8 py-3.5 rounded-2xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all uppercase tracking-widest">{t('common.cancel')}</button>
-                            <button onClick={handleSave} className="flex items-center gap-2 px-10 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">
+                        <div className="p-8 flex justify-end gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest"
+                                style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="btn-gradient flex items-center gap-2 px-10 py-3 rounded-xl text-sm uppercase tracking-widest"
+                            >
                                 <Save size={18} /> {t('common.save')}
                             </button>
                         </div>

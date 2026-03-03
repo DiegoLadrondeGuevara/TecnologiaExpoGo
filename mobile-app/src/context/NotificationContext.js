@@ -18,8 +18,7 @@ const ICONS = {
     warning: AlertTriangle,
 };
 
-export const NotificationProvider = ({ children }) => {
-    const insets = useSafeAreaInsets();
+export const NotificationProvider = ({ children }) => {    const insets = useSafeAreaInsets();
     const [notification, setNotification] = useState(null);
     const slideAnim = useRef(new Animated.Value(-120)).current;
     const timerRef = useRef(null);

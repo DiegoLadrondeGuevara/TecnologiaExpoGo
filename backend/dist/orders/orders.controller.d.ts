@@ -7,6 +7,10 @@ export declare class CreateOrderDto {
     items: OrderItemDto[];
     currency: string;
     exchangeRate: number;
+    shippingAddress?: string;
+}
+export declare class UpdateOrderStatusDto {
+    status: string;
 }
 export declare class OrdersController {
     private ordersService;
@@ -50,6 +54,15 @@ export declare class OrdersController {
         tax: number;
         total: number;
         exchangeRate: number;
+        shippingAddress: string | null;
+    }>;
+    cancel(req: {
+        user: {
+            id: string;
+        };
+    }, id: string): Promise<{
+        cancelled: boolean;
+        orderId: string;
     }>;
     findAll(req: {
         user: {
@@ -107,6 +120,60 @@ export declare class OrdersController {
         tax: number;
         total: number;
         exchangeRate: number;
+        shippingAddress: string | null;
     })[]>;
+    updateStatus(id: string, dto: UpdateOrderStatusDto): Promise<{
+        user: {
+            email: string;
+            name: string;
+        };
+        payment: {
+            id: string;
+            orderId: string;
+            externalId: string | null;
+            amount: number;
+            currency: string;
+            status: string;
+            method: string;
+            mpPreferenceId: string | null;
+            mpInitPoint: string | null;
+            date: Date;
+        } | null;
+        items: ({
+            product: {
+                id: string;
+                empresaId: string;
+                updatedAt: Date;
+                createdAt: Date;
+                nameEs: string;
+                nameEn: string;
+                descriptionEn: string;
+                descriptionEs: string;
+                price: number;
+                specs: import("@prisma/client/runtime/library").JsonValue;
+                imageUrl: string;
+                stock: number;
+                categoryId: string;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            quantity: number;
+            unitPrice: number;
+            productId: string;
+        })[];
+    } & {
+        id: string;
+        updatedAt: Date;
+        createdAt: Date;
+        currency: string;
+        status: string;
+        userId: string;
+        subtotal: number;
+        tax: number;
+        total: number;
+        exchangeRate: number;
+        shippingAddress: string | null;
+    }>;
 }
 export {};

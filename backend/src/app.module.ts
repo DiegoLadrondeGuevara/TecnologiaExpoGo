@@ -10,6 +10,9 @@ import { UsersModule } from './users/users.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { StoreSettingsModule } from './store-settings/store-settings.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
     OrdersModule,
     PaymentsModule,
     DashboardModule,
+    StoreSettingsModule,
+    ReviewsModule,
+    NotificationsModule,
   ],
   providers: [
     {
@@ -37,3 +43,4 @@ import { DashboardModule } from './dashboard/dashboard.module';
   ],
 })
 export class AppModule { }
+

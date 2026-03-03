@@ -3,8 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { ShoppingBag, Search } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-const EmptyState = ({ type = 'cart', message }) => {
-    const icon =
+const EmptyState = ({ type = 'cart', message }) => {    const icon =
         type === 'cart' ? (
             <ShoppingBag size={64} color={COLORS.textSecondary} strokeWidth={1} />
         ) : (
@@ -51,5 +50,4 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 });
-
 export default EmptyState;

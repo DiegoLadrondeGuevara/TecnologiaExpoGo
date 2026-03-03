@@ -29,6 +29,23 @@ const STATUS_CONFIG = {
         icon: CheckCircle,
         color: '#34C759',
         bg: 'rgba(52, 199, 89, 0.12)',
+        step: 1,
+    },
+    shipped: {
+        label: 'Shipped',
+        labelEs: 'Enviado',
+        icon: Package,
+        color: '#007AFF',
+        bg: 'rgba(0, 122, 255, 0.12)',
+        step: 2,
+    },
+    delivered: {
+        label: 'Delivered',
+        labelEs: 'Entregado',
+        icon: CheckCircle,
+        color: '#34C759',
+        bg: 'rgba(52, 199, 89, 0.12)',
+        step: 3,
     },
     pending: {
         label: 'Pending',
@@ -36,11 +53,18 @@ const STATUS_CONFIG = {
         icon: Clock,
         color: '#FF9F0A',
         bg: 'rgba(255, 159, 10, 0.12)',
+        step: 0,
     },
 };
 
-const OrderCard = ({ order, currency, isSpanish }) => {
-    const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+const TIMELINE_STEPS = [
+    { key: 'created', labelEn: 'Created', labelEs: 'Creado' },
+    { key: 'paid', labelEn: 'Paid', labelEs: 'Pagado' },
+    { key: 'shipped', labelEn: 'Shipped', labelEs: 'Enviado' },
+    { key: 'delivered', labelEn: 'Delivered', labelEs: 'Entregado' },
+];
+
+const OrderCard = ({ order, currency, isSpanish }) => {    const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
     const StatusIcon = status.icon;
     const itemCount = order.items?.length || 0;
     const date = new Date(order.createdAt);
@@ -80,6 +104,43 @@ const OrderCard = ({ order, currency, isSpanish }) => {
                     )}
                 </View>
             )}
+
+            {/* Order Timeline */}
+            <View style={styles.timeline}>
+                {TIMELINE_STEPS.map((step, idx) => {
+                    const currentStep = status.step ?? 0;
+                    const isCompleted = idx <= currentStep;
+                    const isLast = idx === TIMELINE_STEPS.length - 1;
+                    return (
+                        <View key={step.key} style={styles.timelineStep}>
+                            <View style={styles.timelineDotCol}>
+                                <View
+                                    style={[
+                                        styles.timelineDot,
+                                        isCompleted && styles.timelineDotActive,
+                                    ]}
+                                />
+                                {!isLast && (
+                                    <View
+                                        style={[
+                                            styles.timelineLine,
+                                            isCompleted && idx < currentStep && styles.timelineLineActive,
+                                        ]}
+                                    />
+                                )}
+                            </View>
+                            <Text
+                                style={[
+                                    styles.timelineLabel,
+                                    isCompleted && styles.timelineLabelActive,
+                                ]}
+                            >
+                                {isSpanish ? step.labelEs : step.labelEn}
+                            </Text>
+                        </View>
+                    );
+                })}
+            </View>
 
             {/* Footer: Date + Total */}
             <View style={styles.orderFooter}>
@@ -334,6 +395,56 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '800',
     },
+    timeline: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingTop: 14,
+        paddingBottom: 4,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: COLORS.border,
+        marginBottom: 8,
+    },
+    timelineStep: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    timelineDotCol: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'center',
+        marginBottom: 6,
+    },
+    timelineDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: COLORS.border,
+        zIndex: 1,
+    },
+    timelineDotActive: {
+        backgroundColor: COLORS.black,
+    },
+    timelineLine: {
+        position: 'absolute',
+        left: '55%',
+        right: '-45%',
+        height: 2,
+        backgroundColor: COLORS.border,
+        top: 4,
+    },
+    timelineLineActive: {
+        backgroundColor: COLORS.black,
+    },
+    timelineLabel: {
+        color: COLORS.textSecondary,
+        fontSize: 9,
+        fontWeight: '600',
+    },
+    timelineLabelActive: {
+        color: COLORS.textPrimary,
+        fontWeight: '700',
+    },
     emptyWrap: {
         flex: 1,
         alignItems: 'center',
@@ -361,5 +472,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-
 export default MyOrdersScreen;

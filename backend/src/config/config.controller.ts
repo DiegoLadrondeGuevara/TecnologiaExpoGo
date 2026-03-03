@@ -48,9 +48,10 @@ export class ConfigController {
     ) { }
 
     @Get()
-    @UseGuards(JwtAuthGuard)
-    getConfig(@Request() req: { user: { empresaId: string } }) {
-        return this.configService.getConfig(req.user.empresaId);
+    getConfig(@Request() req: { user?: { empresaId?: string } }) {
+        // Public endpoint — returns defaults if no empresaId
+        const empresaId = req?.user?.empresaId || 'default';
+        return this.configService.getConfig(empresaId);
     }
 
     @Put()

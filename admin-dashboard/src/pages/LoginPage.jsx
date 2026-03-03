@@ -1,24 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogIn, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
-import { login } from '../services/authService';
+import { login, loginWithGoogle } from '../services/authService';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export default function LoginPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState('');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Initialize Google Sign-In
+    useEffect(() => {
+        if (!GOOGLE_CLIENT_ID) return;
+
+        const loadGoogleScript = () => {
+            if (document.getElementById('google-gsi-script')) return;
+            const script = document.createElement('script');
+            script.id = 'google-gsi-script';
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+            script.onload = initializeGoogleButton;
+            document.body.appendChild(script);
+        };
+
+        const initializeGoogleButton = () => {
+            if (!window.google) return;
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCallback,
+            });
+            window.google.accounts.id.renderButton(
+                document.getElementById('google-signin-btn'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    width: '100%',
+                    text: 'continue_with',
+                    shape: 'pill',
+                },
+            );
+        };
+
+        loadGoogleScript();
+    }, [mounted]);
+
+    const handleGoogleCallback = useCallback(async (response) => {
+        if (!response.credential) return;
+        setGoogleLoading(true);
+        setError('');
+        try {
+            const { user } = await loginWithGoogle(response.credential);
+            if (user.role !== 'ADMIN') {
+                setError('Access denied. Admin credentials required.');
+                setGoogleLoading(false);
+                return;
+            }
+            navigate('/');
+        } catch (err) {
+            setError(err.message || 'Google login failed');
+        } finally {
+            setGoogleLoading(false);
+        }
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
         try {
-            const { user } = await login(email, password);
+            const { user } = await login(identifier, password);
             if (user.role !== 'ADMIN') {
                 setError('Access denied. Admin credentials required.');
                 setLoading(false);
@@ -33,49 +96,144 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-            {/* Background glow effects */}
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ backgroundColor: '#06060a' }}>
+            {/* Animated background orbs */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[128px]" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/5 rounded-full blur-[128px]" />
+                <div
+                    className="absolute rounded-full blur-[120px]"
+                    style={{
+                        top: '15%',
+                        left: '20%',
+                        width: '500px',
+                        height: '500px',
+                        background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)',
+                        animation: 'float 8s ease-in-out infinite',
+                    }}
+                />
+                <div
+                    className="absolute rounded-full blur-[120px]"
+                    style={{
+                        bottom: '10%',
+                        right: '15%',
+                        width: '400px',
+                        height: '400px',
+                        background: 'radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)',
+                        animation: 'float 10s ease-in-out infinite reverse',
+                    }}
+                />
+                <div
+                    className="absolute rounded-full blur-[100px]"
+                    style={{
+                        top: '50%',
+                        left: '60%',
+                        width: '350px',
+                        height: '350px',
+                        background: 'radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)',
+                        animation: 'float 12s ease-in-out infinite 2s',
+                    }}
+                />
+                {/* Grid overlay */}
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `
+                            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
+                        `,
+                        backgroundSize: '60px 60px',
+                    }}
+                />
             </div>
 
-            <div className="relative w-full max-w-md">
-                {/* Logo/Title */}
+            <div
+                className="relative w-full max-w-md"
+                style={{
+                    opacity: mounted ? 1 : 0,
+                    transform: mounted ? 'translateY(0)' : 'translateY(30px)',
+                    transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+            >
+                {/* Logo */}
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl shadow-blue-600/20 mb-6">
+                    <div
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
+                            animation: 'glowPulse 4s ease-in-out infinite',
+                        }}
+                    >
                         <LogIn size={28} className="text-white" />
                     </div>
                     <h1 className="text-3xl font-black text-white tracking-tight">TechStore</h1>
-                    <p className="text-gray-500 text-sm mt-2 font-medium">Admin Dashboard</p>
+                    <p className="text-sm mt-2 font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                        Admin Dashboard
+                    </p>
                 </div>
 
                 {/* Login Card */}
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-[#1c1c1e] rounded-3xl border border-white/5 p-8 shadow-2xl space-y-6"
+                    className="glass-card p-8 space-y-6"
+                    style={{
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset',
+                    }}
                 >
                     {error && (
-                        <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl px-4 py-3 text-rose-400 text-sm font-medium animate-in fade-in duration-200">
+                        <div
+                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium animate-slide-down"
+                            style={{
+                                background: 'rgba(239, 68, 68, 0.08)',
+                                border: '1px solid rgba(239, 68, 68, 0.15)',
+                                color: '#f87171',
+                            }}
+                        >
                             <AlertCircle size={18} />
                             {error}
                         </div>
                     )}
 
+                    {/* Google Sign-In */}
+                    {GOOGLE_CLIENT_ID && (
+                        <>
+                            <div
+                                id="google-signin-btn"
+                                className="flex justify-center"
+                                style={{ minHeight: 44 }}
+                            />
+                            {googleLoading && (
+                                <div className="flex justify-center py-2">
+                                    <Loader2 size={20} className="animate-spin text-white" />
+                                </div>
+                            )}
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+                                    or
+                                </span>
+                                <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                            </div>
+                        </>
+                    )}
+
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Email</label>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
+                            Email or Username
+                        </label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@techstore.com"
+                            type="text"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
+                            placeholder="Email or username"
                             required
-                            className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3.5 px-4 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
+                            className="glass-input w-full rounded-xl py-3.5 px-4 text-white font-medium text-sm"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Password</label>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
+                            Password
+                        </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
@@ -83,12 +241,15 @@ export default function LoginPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 required
-                                className="w-full bg-[#2c2c2e] border border-white/5 rounded-2xl py-3.5 px-4 pr-12 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
+                                className="glass-input w-full rounded-xl py-3.5 px-4 pr-12 text-white font-medium text-sm"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                                style={{ color: 'var(--color-text-muted)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -97,8 +258,8 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98] text-sm uppercase tracking-widest"
+                        disabled={loading || googleLoading}
+                        className="btn-gradient w-full flex items-center justify-center gap-3 py-4 rounded-xl text-sm font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <Loader2 size={18} className="animate-spin" />
@@ -108,7 +269,7 @@ export default function LoginPage() {
                         {loading ? 'Authenticating...' : 'Sign In'}
                     </button>
 
-                    <p className="text-center text-gray-600 text-xs font-medium">
+                    <p className="text-center text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
                         Default: admin@techstore.com / admin123
                     </p>
                 </form>

@@ -2,8 +2,7 @@ import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../theme/colors';
 
-const CategorySelector = ({ categories, activeCategory, onSelect }) => {
-    return (
+const CategorySelector = ({ categories, activeCategory, onSelect }) => {    return (
         <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -36,11 +35,16 @@ const styles = StyleSheet.create({
     },
     chip: {
         paddingHorizontal: 18,
-        paddingVertical: 8,
+        height: 36,
+        minWidth: 70,
+        maxWidth: 160,
         borderRadius: 20,
         backgroundColor: COLORS.card,
         borderWidth: 1,
         borderColor: COLORS.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
     },
     activeChip: {
         backgroundColor: COLORS.primary,
@@ -50,10 +54,10 @@ const styles = StyleSheet.create({
         color: COLORS.textSecondary,
         fontSize: 13,
         fontWeight: '600',
+        textAlign: 'center',
     },
     activeChipText: {
         color: COLORS.white,
     },
 });
-
 export default CategorySelector;

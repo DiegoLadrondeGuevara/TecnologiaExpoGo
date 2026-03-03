@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = exports.LoginDto = exports.RegisterDto = void 0;
+exports.AuthController = exports.GoogleLoginDto = exports.LoginDto = exports.RegisterDto = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const class_validator_1 = require("class-validator");
@@ -43,19 +43,29 @@ __decorate([
     __metadata("design:type", String)
 ], RegisterDto.prototype, "role", void 0);
 class LoginDto {
-    email;
+    identifier;
     password;
 }
 exports.LoginDto = LoginDto;
 __decorate([
-    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], LoginDto.prototype, "email", void 0);
+], LoginDto.prototype, "identifier", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], LoginDto.prototype, "password", void 0);
+class GoogleLoginDto {
+    idToken;
+}
+exports.GoogleLoginDto = GoogleLoginDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], GoogleLoginDto.prototype, "idToken", void 0);
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -65,7 +75,10 @@ let AuthController = class AuthController {
         return this.authService.register(dto);
     }
     login(dto) {
-        return this.authService.login(dto.email, dto.password);
+        return this.authService.login(dto.identifier, dto.password);
+    }
+    loginWithGoogle(dto) {
+        return this.authService.loginWithGoogle(dto.idToken);
     }
 };
 exports.AuthController = AuthController;
@@ -83,6 +96,13 @@ __decorate([
     __metadata("design:paramtypes", [LoginDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('google'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [GoogleLoginDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "loginWithGoogle", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

@@ -179,3 +179,5 @@ export const updateConfig = async (config) => {
     const data = await apiClient.put('/config', config);
     return data;
 };
+
+export default apiClient;

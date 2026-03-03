@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo } from 'react';
 
 const CartContext = createContext();
 
-const TAX_RATE = 0.16;
+const TAX_RATE = 0.18;
 
 const cartReducer = (state, action) => {
     switch (action.type) {

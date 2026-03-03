@@ -40,4 +40,16 @@ export class PaymentsController {
     handleWebhook(@Body() body: { action: string; data: { id: string } }) {
         return this.paymentsService.handleWebhook(body);
     }
+
+    /**
+     * Client-side confirmation — called by mobile after MP redirect
+     * This is a fallback for when webhooks don't reach us (ngrok expired, etc.)
+     */
+    @Post('confirm')
+    @UseGuards(JwtAuthGuard)
+    confirmPayment(
+        @Body() body: { orderId: string; paymentId: string; status: string },
+    ) {
+        return this.paymentsService.confirmFromClient(body);
+    }
 }

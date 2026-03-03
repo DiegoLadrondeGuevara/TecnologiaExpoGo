@@ -11,8 +11,7 @@ import { COLORS } from '../theme/colors';
 import { formatPrice } from 'shared-logic/currency';
 import { useLanguage } from '../context/LanguageContext';
 
-const CartItem = ({ item, onUpdateQuantity, onRemove, currency: currencyProp }) => {
-    const { currency: contextCurrency } = useLanguage();
+const CartItem = ({ item, onUpdateQuantity, onRemove, currency: currencyProp }) => {    const { currency: contextCurrency } = useLanguage();
     const activeCurrency = currencyProp || contextCurrency;
 
     return (
@@ -124,5 +123,4 @@ const styles = StyleSheet.create({
         padding: 6,
     },
 });
-
 export default CartItem;

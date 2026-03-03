@@ -7,16 +7,19 @@ import {
     TouchableOpacity,
     Dimensions,
 } from 'react-native';
+import { Heart } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { formatPrice } from 'shared-logic/currency';
 import { useLanguage } from '../context/LanguageContext';
+import { useFavorites } from '../context/FavoritesContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
-const ProductCard = ({ product, onPress, currency: currencyProp }) => {
-    const { t, currency: contextCurrency } = useLanguage();
+const ProductCard = ({ product, onPress, currency: currencyProp }) => {    const { t, currency: contextCurrency } = useLanguage();
+    const { toggleFavorite, isFavorite } = useFavorites();
     const activeCurrency = currencyProp || contextCurrency;
+    const faved = isFavorite(product.id);
 
     return (
         <TouchableOpacity
@@ -36,6 +39,17 @@ const ProductCard = ({ product, onPress, currency: currencyProp }) => {
                 <View style={styles.categoryBadge}>
                     <Text style={styles.categoryText}>{product.category}</Text>
                 </View>
+                <TouchableOpacity
+                    style={styles.favBadge}
+                    onPress={(e) => { e.stopPropagation?.(); toggleFavorite(product); }}
+                    hitSlop={8}
+                >
+                    <Heart
+                        size={14}
+                        color={faved ? '#e53935' : COLORS.textSecondary}
+                        fill={faved ? '#e53935' : 'none'}
+                    />
+                </TouchableOpacity>
             </View>
             <View style={styles.info}>
                 <Text style={styles.name} numberOfLines={2}>
@@ -109,6 +123,22 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
         textTransform: 'uppercase',
     },
+    favBadge: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: COLORS.white,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
     info: {
         padding: 12,
     },
@@ -135,5 +165,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
-
 export default ProductCard;

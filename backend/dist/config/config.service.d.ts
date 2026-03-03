@@ -12,6 +12,12 @@ export declare class ConfigService {
         exchangeRatePEN: number;
         taxRate: number;
         maintenanceMode: boolean;
+    } | {
+        defaultLanguage: string;
+        defaultCurrency: string;
+        exchangeRatePEN: number;
+        taxRate: number;
+        maintenanceMode: boolean;
     }>;
     updateConfig(empresaId: string, data: {
         defaultLanguage?: string;

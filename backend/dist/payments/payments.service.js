@@ -52,9 +52,9 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             body: {
                 items,
                 back_urls: {
-                    success: 'techstore://payment/success',
-                    failure: 'techstore://payment/failure',
-                    pending: 'techstore://payment/pending',
+                    success: 'https://techstore.app/payment/success',
+                    failure: 'https://techstore.app/payment/failure',
+                    pending: 'https://techstore.app/payment/pending',
                 },
                 auto_return: 'approved',
                 external_reference: data.orderId,
@@ -149,6 +149,66 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             this.logger.error(`Webhook processing error: ${error.message}`);
             return { received: true, processed: false, error: error.message };
         }
+    }
+    async confirmFromClient(data) {
+        const { orderId, paymentId, status } = data;
+        this.logger.log(`Client confirm: order=${orderId}, paymentId=${paymentId}, status=${status}`);
+        try {
+            if (paymentId && paymentId !== 'null') {
+                const mpPayment = new mercadopago_1.Payment(this.mpClient);
+                const paymentInfo = await mpPayment.get({
+                    id: Number(paymentId),
+                });
+                this.logger.log(`MP verification: status=${paymentInfo.status}`);
+                if (paymentInfo.status === 'approved') {
+                    await this.markOrderPaid(orderId, paymentId);
+                    return { confirmed: true, status: 'approved' };
+                }
+                return {
+                    confirmed: false,
+                    status: paymentInfo.status,
+                    message: 'Payment not yet approved by MercadoPago',
+                };
+            }
+            if (status === 'approved') {
+                await this.markOrderPaid(orderId, 'client-confirmed');
+                return { confirmed: true, status: 'approved' };
+            }
+            return { confirmed: false, status, message: 'Payment not approved' };
+        }
+        catch (error) {
+            this.logger.error(`Confirm error: ${error.message}`);
+            if (status === 'approved') {
+                await this.markOrderPaid(orderId, 'client-fallback');
+                return { confirmed: true, status: 'approved' };
+            }
+            return { confirmed: false, error: error.message };
+        }
+    }
+    async markOrderPaid(orderId, externalId) {
+        await this.prisma.$transaction(async (tx) => {
+            await tx.order.update({
+                where: { id: orderId },
+                data: { status: 'paid' },
+            });
+            await tx.payment.updateMany({
+                where: { orderId },
+                data: { externalId, status: 'approved' },
+            });
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: { items: true },
+            });
+            if (order) {
+                for (const item of order.items) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                }
+            }
+            this.logger.log(`✅ Order ${orderId} marked as PAID (via ${externalId}), stock decremented`);
+        });
     }
 };
 exports.PaymentsService = PaymentsService;

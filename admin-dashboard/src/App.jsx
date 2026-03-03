@@ -8,6 +8,7 @@ import PaymentsPage from './pages/PaymentsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import LoginPage from './pages/LoginPage';
 import SalesPage from './pages/SalesPage';
+import SettingsPage from './pages/SettingsPage';
 import { isAuthenticated } from './services/authService';
 import { setAuthToken } from '../../shared-logic/apiClient';
 
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

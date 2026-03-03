@@ -22,7 +22,13 @@ let ConfigService = class ConfigService {
             where: { empresaId },
         });
         if (!config) {
-            throw new common_1.NotFoundException('Configuration not found');
+            return {
+                defaultLanguage: 'en',
+                defaultCurrency: 'USD',
+                exchangeRatePEN: 3.80,
+                taxRate: 0.16,
+                maintenanceMode: false,
+            };
         }
         return config;
     }

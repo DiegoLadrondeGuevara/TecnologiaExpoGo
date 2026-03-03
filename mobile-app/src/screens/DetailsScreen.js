@@ -18,19 +18,24 @@ import {
     Package,
     Shield,
     Truck,
+    Heart,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { getProductById } from '../api/productService';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useFavorites } from '../context/FavoritesContext';
+import { useRecentlyViewed } from '../context/RecentlyViewedContext';
 import { formatPrice } from 'shared-logic/currency';
+import ReviewSection from '../components/ReviewSection';
 
 const { width } = Dimensions.get('window');
 
-const DetailsScreen = ({ route, navigation }) => {
-    const { productId } = route.params;
+const DetailsScreen = ({ route, navigation }) => {    const { productId } = route.params;
     const { addToCart } = useCart();
     const { t, currency } = useLanguage();
+    const { toggleFavorite, isFavorite } = useFavorites();
+    const { addRecentlyViewed } = useRecentlyViewed();
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -42,6 +47,8 @@ const DetailsScreen = ({ route, navigation }) => {
             try {
                 const data = await getProductById(productId);
                 setProduct(data);
+                // Track this product as recently viewed
+                if (data) addRecentlyViewed(data);
             } catch (error) {
                 console.error('Error loading product:', error);
             } finally {
@@ -92,6 +99,18 @@ const DetailsScreen = ({ route, navigation }) => {
                     >
                         <ChevronLeft size={22} color={COLORS.black} />
                     </TouchableOpacity>
+                    {product && (
+                        <TouchableOpacity
+                            style={styles.favBtn}
+                            onPress={() => toggleFavorite(product)}
+                        >
+                            <Heart
+                                size={22}
+                                color={isFavorite(product.id) ? '#e53935' : COLORS.textSecondary}
+                                fill={isFavorite(product.id) ? '#e53935' : 'none'}
+                            />
+                        </TouchableOpacity>
+                    )}
                     <Image
                         source={{ uri: product.image_url }}
                         style={styles.image}
@@ -145,6 +164,9 @@ const DetailsScreen = ({ route, navigation }) => {
                             </View>
                         ))}
                     </View>
+
+                    {/* Reviews */}
+                    <ReviewSection productId={productId} />
                 </View>
             </ScrollView>
 
@@ -211,6 +233,23 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 12,
         left: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: COLORS.white,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    favBtn: {
+        position: 'absolute',
+        top: 12,
+        right: 16,
         width: 40,
         height: 40,
         borderRadius: 20,
@@ -385,5 +424,4 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
-
 export default DetailsScreen;

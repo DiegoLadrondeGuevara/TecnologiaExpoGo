@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -18,35 +18,52 @@ import {
     User,
     MapPin,
     Save,
+    Sun,
+    Moon,
+    Monitor,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import apiClient from '../../../shared-logic/apiClient';
 
 const SettingsScreen = ({ navigation }) => {
     const { user, setUser } = useAuth();
     const { t } = useLanguage();
-    const [editingField, setEditingField] = useState(null); // null | 'name' | 'address'
+    const { mode: themeMode, setTheme, isDark } = useTheme();
+    const [editingField, setEditingField] = useState(null); // null | 'name'
     const [value, setValue] = useState('');
     const [saving, setSaving] = useState(false);
 
+    // Parse saved address
+    const savedAddress = useMemo(() => {
+        if (!user?.address) return null;
+        try {
+            return JSON.parse(user.address);
+        } catch {
+            return { label: '', address: user.address };
+        }
+    }, [user?.address]);
+
     const openEdit = (field) => {
+        if (field === 'address') {
+            // Navigate to ShippingAddressScreen in settings mode
+            navigation.navigate('ShippingAddress', { mode: 'settings' });
+            return;
+        }
         setEditingField(field);
-        setValue(field === 'name' ? (user?.name || '') : (user?.address || ''));
+        setValue(user?.name || '');
     };
 
     const handleSave = async () => {
-        if (editingField === 'name' && !value.trim()) {
+        if (!value.trim()) {
             Alert.alert('Error', t('settings.nameRequired') || 'Name is required');
             return;
         }
         setSaving(true);
         try {
-            const payload = editingField === 'name'
-                ? { name: value.trim() }
-                : { address: value.trim() };
-            const res = await apiClient.patch('/users/me', payload);
+            const res = await apiClient.patch('/users/me', { name: value.trim() });
             if (setUser) setUser(res);
             Alert.alert('✓', t('settings.saved') || 'Updated successfully');
             setEditingField(null);
@@ -57,14 +74,8 @@ const SettingsScreen = ({ navigation }) => {
         }
     };
 
-    // ─── Edit Screen (Name or Address) ───
-    if (editingField) {
-        const isName = editingField === 'name';
-        const Icon = isName ? User : MapPin;
-        const label = isName
-            ? (t('settings.name') || 'Full Name')
-            : (t('settings.address') || 'Address');
-
+    // ─── Edit Name Screen ───
+    if (editingField === 'name') {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <KeyboardAvoidingView
@@ -79,7 +90,9 @@ const SettingsScreen = ({ navigation }) => {
                         >
                             <ChevronLeft size={22} color={COLORS.black} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>{label}</Text>
+                        <Text style={styles.headerTitle}>
+                            {t('settings.name') || 'Full Name'}
+                        </Text>
                         <View style={{ width: 40 }} />
                     </View>
 
@@ -89,27 +102,22 @@ const SettingsScreen = ({ navigation }) => {
                         showsVerticalScrollIndicator={false}
                     >
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>{label}</Text>
-                            <View style={[
-                                styles.inputWrapper,
-                                !isName && { height: 100, alignItems: 'flex-start', paddingTop: 14 },
-                            ]}>
-                                <Icon
+                            <Text style={styles.label}>
+                                {t('settings.name') || 'Full Name'}
+                            </Text>
+                            <View style={styles.inputWrapper}>
+                                <User
                                     size={18}
                                     color={COLORS.textSecondary}
                                     style={styles.inputIcon}
                                 />
                                 <TextInput
-                                    style={[
-                                        styles.input,
-                                        !isName && { textAlignVertical: 'top' },
-                                    ]}
+                                    style={styles.input}
                                     value={value}
                                     onChangeText={setValue}
-                                    placeholder={isName ? 'John Doe' : '123 Main St, City...'}
+                                    placeholder="John Doe"
                                     placeholderTextColor={COLORS.textSecondary}
-                                    autoCapitalize={isName ? 'words' : 'sentences'}
-                                    multiline={!isName}
+                                    autoCapitalize="words"
                                     autoFocus
                                 />
                             </View>
@@ -139,6 +147,10 @@ const SettingsScreen = ({ navigation }) => {
     }
 
     // ─── Main Settings Menu ───
+    const addressDisplay = savedAddress
+        ? `${savedAddress.label || 'Address'}  •  ${savedAddress.address || ''}`
+        : (t('settings.notSet') || 'Not set');
+
     const menuItems = [
         {
             icon: User,
@@ -148,8 +160,8 @@ const SettingsScreen = ({ navigation }) => {
         },
         {
             icon: MapPin,
-            label: t('settings.address') || 'Address',
-            value: user?.address || t('settings.notSet') || 'Not set',
+            label: t('address.shippingAddress') || 'Shipping Address',
+            value: addressDisplay,
             onPress: () => openEdit('address'),
         },
     ];
@@ -199,6 +211,46 @@ const SettingsScreen = ({ navigation }) => {
                             <ChevronRight size={18} color={COLORS.textSecondary} />
                         </TouchableOpacity>
                     ))}
+                </View>
+
+                {/* Theme Toggle */}
+                <View style={styles.themeSection}>
+                    <Text style={styles.themeSectionTitle}>
+                        {t('settings.theme') || 'Appearance'}
+                    </Text>
+                    <View style={styles.themeToggle}>
+                        {[
+                            { key: 'light', label: t('settings.light') || 'Light', Icon: Sun },
+                            { key: 'dark', label: t('settings.dark') || 'Dark', Icon: Moon },
+                            { key: 'system', label: t('settings.system') || 'System', Icon: Monitor },
+                        ].map((opt) => (
+                            <TouchableOpacity
+                                key={opt.key}
+                                style={[
+                                    styles.themeOption,
+                                    themeMode === opt.key && styles.themeOptionActive,
+                                ]}
+                                onPress={() => setTheme(opt.key)}
+                            >
+                                <opt.Icon
+                                    size={16}
+                                    color={
+                                        themeMode === opt.key
+                                            ? COLORS.accent
+                                            : COLORS.textSecondary
+                                    }
+                                />
+                                <Text
+                                    style={[
+                                        styles.themeOptionText,
+                                        themeMode === opt.key && styles.themeOptionTextActive,
+                                    ]}
+                                >
+                                    {opt.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -322,6 +374,40 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
+    themeSection: {
+        gap: 10,
+    },
+    themeSectionTitle: {
+        color: COLORS.textPrimary,
+        fontSize: 15,
+        fontWeight: '700',
+        marginLeft: 4,
+    },
+    themeToggle: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.card,
+        borderRadius: 14,
+        padding: 4,
+    },
+    themeOption: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 10,
+        borderRadius: 10,
+    },
+    themeOptionActive: {
+        backgroundColor: COLORS.primary,
+    },
+    themeOptionText: {
+        color: COLORS.textSecondary,
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    themeOptionTextActive: {
+        color: COLORS.accent,
+    },
 });
-
 export default SettingsScreen;

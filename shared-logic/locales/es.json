@@ -15,7 +15,8 @@
         "back": "Volver",
         "close": "Cerrar",
         "language": "Idioma",
-        "currency": "Moneda"
+        "currency": "Moneda",
+        "items": "artículos"
     },
     "home": {
         "greeting_morning": "Buenos Días 👋",
@@ -27,19 +28,33 @@
         "searchPlaceholder": "Buscar productos...",
         "allCategories": "Todos",
         "noProductsFound": "No se encontraron productos",
-        "lowStock": "Pocas unidades"
+        "lowStock": "Pocas unidades",
+        "all": "Todos",
+        "recentlyViewed": "Vistos Recientemente",
+        "clearRecent": "Limpiar",
+        "sortBy": "Ordenar por",
+        "sortDefault": "Predeterminado",
+        "sortPriceLow": "Precio: Menor a Mayor",
+        "sortPriceHigh": "Precio: Mayor a Menor",
+        "sortAZ": "Nombre: A → Z",
+        "sortZA": "Nombre: Z → A",
+        "sortTopRated": "Mejor Valorados"
     },
     "details": {
         "specifications": "Especificaciones",
         "quantity": "Cantidad",
         "unitsInStock": "{{count}} unidades en stock",
         "addToCart": "Agregar al Carrito",
+        "added": "¡Agregado!",
         "total": "Total",
         "productNotFound": "Producto no encontrado",
         "continueShopping": "Seguir Comprando",
         "goToCart": "Ir al Carrito",
         "addedToCart": "Agregado al Carrito ✓",
-        "addedMessage": "{{quantity}}x {{name}} agregado a tu carrito"
+        "addedMessage": "{{quantity}}x {{name}} agregado a tu carrito",
+        "freeReturns": "Devoluciones Gratis",
+        "warranty": "1 Año de Garantía",
+        "fastShipping": "Envío Rápido"
     },
     "cart": {
         "title": "Carrito de Compras",
@@ -47,7 +62,7 @@
         "item": "{{count}} artículo",
         "orderSummary": "Resumen del Pedido",
         "subtotal": "Subtotal",
-        "tax": "IGV (16%)",
+        "tax": "IGV (18%)",
         "total": "Total",
         "checkout": "Pagar",
         "emptyCart": "Tu carrito está vacío",
@@ -56,17 +71,92 @@
         "removeConfirm": "¿Estás seguro de que deseas eliminar este artículo?",
         "remove": "Eliminar"
     },
+    "address": {
+        "title": "Dirección de Envío",
+        "shippingAddress": "Dirección de Envío",
+        "shippingTo": "Enviar a",
+        "tapToAdd": "Toca para agregar dirección de envío",
+        "whereToShip": "¿A dónde enviamos tu pedido?",
+        "editTitle": "Edita tu dirección de envío",
+        "subtitle": "Ingresa tu dirección de envío o usa el GPS para autocompletar.",
+        "labelName": "Etiqueta de Dirección",
+        "labelPlaceholder": "ej. Casa, Oficina, Trabajo...",
+        "labelHint": "Dale un nombre a tu dirección para recordarla fácilmente",
+        "label": "Dirección Completa",
+        "placeholder": "Calle, número, ciudad, código postal...",
+        "useMyLocation": "Usar mi ubicación actual",
+        "locating": "Obteniendo tu ubicación...",
+        "orEnterManually": "o ingresa manualmente",
+        "continue": "Continuar al Pago",
+        "required": "Dirección Requerida",
+        "requiredMessage": "Por favor ingresa una dirección de envío para continuar.",
+        "permissionDenied": "Permiso Denegado",
+        "permissionMessage": "Por favor habilita los permisos de ubicación en la configuración de tu dispositivo.",
+        "locationError": "No se pudo obtener tu ubicación. Por favor ingresa la dirección manualmente."
+    },
     "profile": {
         "title": "Perfil",
         "orders": "Pedidos",
         "wishlist": "Favoritos",
         "spent": "Gastado",
         "notifications": "Notificaciones",
+        "favorites": "Favoritos",
+        "language": "Idioma",
         "settings": "Configuración",
         "helpSupport": "Ayuda y Soporte",
         "signOut": "Cerrar Sesión",
+        "signOutConfirm": "¿Estás seguro de que deseas cerrar sesión?",
+        "myOrders": "Mis Pedidos",
         "switchLanguage": "Cambiar Idioma",
         "version": "TechStore v1.0.0"
+    },
+    "favorites": {
+        "empty": "Aún no tienes favoritos",
+        "emptyMessage": "Los productos que marques como favoritos aparecerán aquí."
+    },
+    "notifications": {
+        "promoTitle": "Ofertas para Ti",
+        "promoSubtitle": "Productos recomendados basados en tu actividad",
+        "basedOnCart": "Basado en tu carrito",
+        "trending": "Tendencias",
+        "noRecommendations": "No hay recomendaciones disponibles por ahora",
+        "fewLeft": "¡Quedan pocos!"
+    },
+    "reviews": {
+        "title": "Reseñas",
+        "write": "Escribir",
+        "yourRating": "Tu calificación",
+        "commentPlaceholder": "Comparte tu experiencia (opcional)",
+        "submit": "Enviar",
+        "noReviews": "Aún no hay reseñas. ¡Sé el primero!",
+        "loginRequired": "Inicio de Sesión Requerido",
+        "loginMessage": "Por favor inicia sesión para dejar una reseña.",
+        "error": "Error",
+        "mustPurchase": "Solo puedes reseñar productos que hayas comprado.",
+        "alreadyReviewed": "Ya reseñaste este producto."
+    },
+    "notification": {
+        "welcome": "¡Bienvenido de nuevo!",
+        "welcomeMessage": "Qué bueno verte"
+    },
+    "settings": {
+        "name": "Nombre Completo",
+        "address": "Dirección",
+        "save": "Guardar Cambios",
+        "saved": "Actualizado correctamente",
+        "notSet": "No configurado",
+        "nameRequired": "El nombre es obligatorio",
+        "theme": "Apariencia",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Sistema"
+    },
+    "support": {
+        "title": "¿Necesitas ayuda?",
+        "subtitle": "Chatea con nosotros por WhatsApp para soporte rápido.",
+        "contactWhatsApp": "Contactar por WhatsApp",
+        "whatsappMessage": "¡Hola! Necesito ayuda con TechStore.",
+        "unavailable": "Teléfono de soporte no configurado."
     },
     "payment": {
         "title": "Pago",
@@ -121,6 +211,7 @@
         "confirmDelete": "¿Estás seguro de que deseas eliminar este elemento?",
         "specs": "Especificaciones",
         "sales": "Ventas",
+        "settings": "Configuración",
         "loading": "Cargando"
     }
 }

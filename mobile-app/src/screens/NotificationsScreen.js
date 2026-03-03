@@ -21,8 +21,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import apiClient from '../../../shared-logic/apiClient';
 
-const NotificationsScreen = ({ navigation }) => {
-    const { t, locale, currency, exchangeRate } = useLanguage();
+const NotificationsScreen = ({ navigation }) => {    const { t, locale, currency, exchangeRate } = useLanguage();
     const { cartItems } = useCart();
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -338,5 +337,4 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
 });
-
 export default NotificationsScreen;

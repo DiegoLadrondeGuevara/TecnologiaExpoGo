@@ -1,9 +1,13 @@
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 export declare class AuthService {
     private prisma;
     private jwtService;
-    constructor(prisma: PrismaService, jwtService: JwtService);
+    private configService;
+    private readonly logger;
+    private googleClient;
+    constructor(prisma: PrismaService, jwtService: JwtService, configService: ConfigService);
     register(data: {
         name: string;
         email: string;
@@ -18,12 +22,23 @@ export declare class AuthService {
         };
         access_token: string;
     }>;
-    login(email: string, password: string): Promise<{
+    login(identifier: string, password: string): Promise<{
         user: {
             id: string;
             name: string;
             email: string;
             role: string;
+            avatarUrl: string | null;
+        };
+        access_token: string;
+    }>;
+    loginWithGoogle(idToken: string): Promise<{
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+            avatarUrl: string | null;
         };
         access_token: string;
     }>;

@@ -9,39 +9,87 @@ import {
     Platform,
     ScrollView,
     ActivityIndicator,
-    Alert,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
+import * as AuthSession from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import { COLORS } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
-const LoginScreen = ({ navigation }) => {
-    const { login } = useAuth();
+// Required for web-based auth sessions
+WebBrowser.maybeCompleteAuthSession();
 
-    const [email, setEmail] = useState('');
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
+
+const LoginScreen = ({ navigation }) => {    const { login, loginWithGoogle } = useAuth();
+
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Google Auth Session
+    const [request, response, promptAsync] = AuthSession.useAuthRequest({
+        expoClientId: GOOGLE_CLIENT_ID,
+        androidClientId: GOOGLE_CLIENT_ID,
+        iosClientId: GOOGLE_CLIENT_ID,
+        webClientId: GOOGLE_CLIENT_ID,
+    });
+
+    // Handle Google auth response
+    React.useEffect(() => {
+        if (response?.type === 'success') {
+            const { id_token } = response.params;
+            if (id_token) {
+                handleGoogleLogin(id_token);
+            }
+        } else if (response?.type === 'error') {
+            setError('Google sign-in failed. Please try again.');
+        }
+    }, [response]);
 
     const handleLogin = async () => {
         setError('');
 
-        if (!email.trim() || !password.trim()) {
+        if (!identifier.trim() || !password.trim()) {
             setError('Please fill in all fields');
             return;
         }
 
         setLoading(true);
         try {
-            await login(email.trim().toLowerCase(), password);
+            await login(identifier.trim(), password);
         } catch (err) {
             const message = err.message || 'Login failed. Please try again.';
             setError(message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleLogin = async (idToken) => {
+        setGoogleLoading(true);
+        setError('');
+        try {
+            await loginWithGoogle(idToken);
+        } catch (err) {
+            const message = err.message || 'Google login failed. Please try again.';
+            setError(message);
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    const handleGooglePress = () => {
+        if (!GOOGLE_CLIENT_ID) {
+            setError('Google Sign-In is not configured. Please contact support.');
+            return;
+        }
+        promptAsync();
     };
 
     return (
@@ -73,23 +121,49 @@ const LoginScreen = ({ navigation }) => {
                         </View>
                     ) : null}
 
+                    {/* Google Sign-In Button */}
+                    <TouchableOpacity
+                        style={styles.googleButton}
+                        onPress={handleGooglePress}
+                        disabled={googleLoading || loading}
+                        activeOpacity={0.8}
+                    >
+                        {googleLoading ? (
+                            <ActivityIndicator size="small" color={COLORS.textPrimary} />
+                        ) : (
+                            <>
+                                <Image
+                                    source={{ uri: 'https://developers.google.com/identity/images/g-logo.png' }}
+                                    style={styles.googleIcon}
+                                />
+                                <Text style={styles.googleButtonText}>Continue with Google</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Divider */}
+                    <View style={styles.dividerRow}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>or</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
                     {/* Form */}
                     <View style={styles.form}>
-                        {/* Email */}
+                        {/* Email / Username */}
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Email</Text>
+                            <Text style={styles.label}>Email or Username</Text>
                             <View style={styles.inputWrapper}>
                                 <Mail size={18} color={COLORS.textSecondary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="your@email.com"
+                                    placeholder="Email or username"
                                     placeholderTextColor={COLORS.textSecondary}
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
+                                    value={identifier}
+                                    onChangeText={setIdentifier}
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    editable={!loading}
+                                    editable={!loading && !googleLoading}
                                 />
                             </View>
                         </View>
@@ -107,7 +181,7 @@ const LoginScreen = ({ navigation }) => {
                                     onChangeText={setPassword}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
-                                    editable={!loading}
+                                    editable={!loading && !googleLoading}
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowPassword(!showPassword)}
@@ -125,10 +199,10 @@ const LoginScreen = ({ navigation }) => {
 
                         {/* Login Button */}
                         <TouchableOpacity
-                            style={[styles.button, loading && styles.buttonDisabled]}
+                            style={[styles.button, (loading || googleLoading) && styles.buttonDisabled]}
                             onPress={handleLogin}
                             activeOpacity={0.8}
-                            disabled={loading}
+                            disabled={loading || googleLoading}
                         >
                             {loading ? (
                                 <ActivityIndicator color={COLORS.white} size="small" />
@@ -167,7 +241,7 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginBottom: 32,
+        marginBottom: 28,
     },
     logoContainer: {
         width: 72,
@@ -205,6 +279,44 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
         textAlign: 'center',
+    },
+    googleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.card,
+        borderRadius: 14,
+        height: 52,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        gap: 12,
+        marginBottom: 20,
+    },
+    googleIcon: {
+        width: 20,
+        height: 20,
+    },
+    googleButtonText: {
+        color: COLORS.textPrimary,
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    dividerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        gap: 12,
+    },
+    dividerLine: {
+        flex: 1,
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: COLORS.border,
+    },
+    dividerText: {
+        color: COLORS.textSecondary,
+        fontSize: 12,
+        fontWeight: '600',
+        textTransform: 'uppercase',
     },
     form: {
         gap: 20,
@@ -277,5 +389,4 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
-
 export default LoginScreen;

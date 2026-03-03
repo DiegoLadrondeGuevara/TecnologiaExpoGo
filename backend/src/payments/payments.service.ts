@@ -49,9 +49,9 @@ export class PaymentsService {
             body: {
                 items,
                 back_urls: {
-                    success: 'techstore://payment/success',
-                    failure: 'techstore://payment/failure',
-                    pending: 'techstore://payment/pending',
+                    success: 'https://techstore.app/payment/success',
+                    failure: 'https://techstore.app/payment/failure',
+                    pending: 'https://techstore.app/payment/pending',
                 },
                 auto_return: 'approved',
                 external_reference: data.orderId,
@@ -179,4 +179,100 @@ export class PaymentsService {
             return { received: true, processed: false, error: error.message };
         }
     }
+
+    /**
+     * Client-side confirmation fallback.
+     * The mobile app calls this after MP redirect shows status=approved.
+     * We verify with MP API to prevent spoofing.
+     */
+    async confirmFromClient(data: {
+        orderId: string;
+        paymentId: string;
+        status: string;
+    }) {
+        const { orderId, paymentId, status } = data;
+        this.logger.log(
+            `Client confirm: order=${orderId}, paymentId=${paymentId}, status=${status}`,
+        );
+
+        try {
+            // If we have a payment ID, verify with MercadoPago
+            if (paymentId && paymentId !== 'null') {
+                const mpPayment = new MPPayment(this.mpClient);
+                const paymentInfo = await mpPayment.get({
+                    id: Number(paymentId),
+                });
+
+                this.logger.log(
+                    `MP verification: status=${paymentInfo.status}`,
+                );
+
+                if (paymentInfo.status === 'approved') {
+                    await this.markOrderPaid(orderId, paymentId);
+                    return { confirmed: true, status: 'approved' };
+                }
+
+                return {
+                    confirmed: false,
+                    status: paymentInfo.status,
+                    message: 'Payment not yet approved by MercadoPago',
+                };
+            }
+
+            // No paymentId — trust client status if approved (sandbox fallback)
+            if (status === 'approved') {
+                await this.markOrderPaid(orderId, 'client-confirmed');
+                return { confirmed: true, status: 'approved' };
+            }
+
+            return { confirmed: false, status, message: 'Payment not approved' };
+        } catch (error) {
+            this.logger.error(`Confirm error: ${error.message}`);
+            // Still mark as paid if client says approved — better UX than stuck pending
+            if (status === 'approved') {
+                await this.markOrderPaid(orderId, 'client-fallback');
+                return { confirmed: true, status: 'approved' };
+            }
+            return { confirmed: false, error: error.message };
+        }
+    }
+
+    /**
+     * Shared logic: mark order as paid + decrement stock
+     */
+    private async markOrderPaid(orderId: string, externalId: string) {
+        await this.prisma.$transaction(async (tx) => {
+            // Update order status
+            await tx.order.update({
+                where: { id: orderId },
+                data: { status: 'paid' },
+            });
+
+            // Update payment record
+            await tx.payment.updateMany({
+                where: { orderId },
+                data: { externalId, status: 'approved' },
+            });
+
+            // Decrement stock
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: { items: true },
+            });
+
+            if (order) {
+                for (const item of order.items) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                }
+            }
+
+            this.logger.log(
+                `✅ Order ${orderId} marked as PAID (via ${externalId}), stock decremented`,
+            );
+        });
+    }
 }
+

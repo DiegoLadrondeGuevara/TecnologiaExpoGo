@@ -20,12 +20,19 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-    @IsEmail()
-    email!: string;
+    @IsString()
+    @IsNotEmpty()
+    identifier!: string;
 
     @IsString()
     @IsNotEmpty()
     password!: string;
+}
+
+export class GoogleLoginDto {
+    @IsString()
+    @IsNotEmpty()
+    idToken!: string;
 }
 
 @Controller('auth')
@@ -39,6 +46,11 @@ export class AuthController {
 
     @Post('login')
     login(@Body() dto: LoginDto) {
-        return this.authService.login(dto.email, dto.password);
+        return this.authService.login(dto.identifier, dto.password);
+    }
+
+    @Post('google')
+    loginWithGoogle(@Body() dto: GoogleLoginDto) {
+        return this.authService.loginWithGoogle(dto.idToken);
     }
 }

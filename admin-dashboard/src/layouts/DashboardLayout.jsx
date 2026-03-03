@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Package,
@@ -8,9 +8,12 @@ import {
     CreditCard,
     Tags,
     Globe,
-    ChevronRight,
     LogOut,
     ShoppingCart,
+    Settings,
+    ChevronLeft,
+    ChevronRight,
+    Menu,
 } from 'lucide-react';
 import { logout } from '../services/authService';
 
@@ -21,90 +24,297 @@ const NAV_ITEMS = [
     { path: '/payments', icon: CreditCard, labelKey: 'admin.payments' },
     { path: '/sales', icon: ShoppingCart, labelKey: 'admin.sales' },
     { path: '/categories', icon: Tags, labelKey: 'admin.categories' },
+    { path: '/settings', icon: Settings, labelKey: 'admin.settings' },
 ];
 
 export default function DashboardLayout() {
     const { t, i18n } = useTranslation();
     const currentLang = i18n.language;
+    const location = useLocation();
+    const [collapsed, setCollapsed] = useState(true);
+    const [hovered, setHovered] = useState(false);
+
+    const isExpanded = !collapsed || hovered;
 
     const toggleLanguage = () => {
         i18n.changeLanguage(currentLang === 'en' ? 'es' : 'en');
     };
 
-    return (
-        <div className="flex h-screen overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 flex-shrink-0 flex flex-col"
-                style={{ backgroundColor: 'var(--color-bg-secondary)', borderRight: '1px solid var(--color-border)' }}>
+    // Get current page title
+    const currentNav = NAV_ITEMS.find(item =>
+        item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+    );
 
-                {/* Logo */}
-                <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--color-accent-blue)' }}>
+    return (
+        <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+            {/* Ambient background glow */}
+            <div className="ambient-glow" style={{ width: '100%', height: '100%' }} />
+
+            {/* ═══ SIDEBAR ═══ */}
+            <aside
+                className="glass-sidebar flex-shrink-0 flex flex-col h-full relative z-20"
+                style={{
+                    width: isExpanded ? 'var(--sidebar-expanded)' : 'var(--sidebar-collapsed)',
+                    transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+            >
+                {/* Logo Area */}
+                <div
+                    className="flex items-center gap-3 px-5 py-5"
+                    style={{
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        minHeight: '72px',
+                    }}
+                >
+                    <div
+                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
+                        }}
+                    >
                         <Package size={20} color="#fff" />
                     </div>
-                    <div>
-                        <h1 className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>TechStore</h1>
-                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Admin Panel</span>
+                    <div
+                        style={{
+                            opacity: isExpanded ? 1 : 0,
+                            width: isExpanded ? 'auto' : 0,
+                            overflow: 'hidden',
+                            transition: 'opacity 0.25s ease, width 0.3s ease',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <h1 className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                            TechStore
+                        </h1>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                            Admin Panel
+                        </span>
                     </div>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
+                <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
                     {NAV_ITEMS.map(({ path, icon: Icon, labelKey }) => (
                         <NavLink
                             key={path}
                             to={path}
                             end={path === '/'}
-                            className={({ isActive }) =>
-                                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${isActive ? 'text-white' : ''
-                                }`
-                            }
-                            style={({ isActive }) => ({
-                                backgroundColor: isActive ? 'var(--color-accent-glow)' : 'transparent',
-                                color: isActive ? 'var(--color-accent-blue-light)' : 'var(--color-text-secondary)',
-                            })}
+                            className="group relative"
                         >
-                            <Icon size={18} />
-                            <span className="flex-1">{t(labelKey)}</span>
-                            <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {({ isActive }) => (
+                                <div
+                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium relative"
+                                    style={{
+                                        backgroundColor: isActive
+                                            ? 'rgba(99, 102, 241, 0.1)'
+                                            : 'transparent',
+                                        color: isActive
+                                            ? '#818cf8'
+                                            : 'var(--color-text-secondary)',
+                                        transition: 'all 0.25s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)';
+                                            e.currentTarget.style.color = 'var(--color-text-primary)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                            e.currentTarget.style.color = 'var(--color-text-secondary)';
+                                        }
+                                    }}
+                                >
+                                    {/* Active indicator bar */}
+                                    {isActive && <div className="nav-active-indicator" />}
+
+                                    <Icon size={20} className="flex-shrink-0" />
+
+                                    <span
+                                        style={{
+                                            opacity: isExpanded ? 1 : 0,
+                                            width: isExpanded ? 'auto' : 0,
+                                            overflow: 'hidden',
+                                            transition: 'opacity 0.25s ease',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {t(labelKey)}
+                                    </span>
+
+                                    {/* Tooltip when collapsed */}
+                                    {!isExpanded && (
+                                        <div className="sidebar-tooltip">
+                                            {t(labelKey)}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </NavLink>
                     ))}
                 </nav>
 
-                {/* Logout */}
-                <div className="px-3 pb-2">
+                {/* Bottom Actions */}
+                <div className="px-3 pb-2 flex flex-col gap-1">
+                    {/* Language Toggle */}
+                    <button
+                        onClick={toggleLanguage}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer group relative"
+                        style={{
+                            backgroundColor: 'rgba(255,255,255,0.03)',
+                            color: 'var(--color-text-secondary)',
+                            transition: 'all 0.25s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
+                        }}
+                    >
+                        <Globe size={20} className="flex-shrink-0" />
+                        <span
+                            style={{
+                                opacity: isExpanded ? 1 : 0,
+                                width: isExpanded ? 'auto' : 0,
+                                overflow: 'hidden',
+                                transition: 'opacity 0.25s ease',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                                textAlign: 'left',
+                            }}
+                        >
+                            {currentLang === 'en' ? 'Español' : 'English'}
+                        </span>
+                        {isExpanded && (
+                            <span
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                                style={{
+                                    background: 'rgba(99, 102, 241, 0.15)',
+                                    color: '#818cf8',
+                                }}
+                            >
+                                {currentLang.toUpperCase()}
+                            </span>
+                        )}
+                        {!isExpanded && (
+                            <div className="sidebar-tooltip">
+                                {currentLang === 'en' ? 'Español' : 'English'}
+                            </div>
+                        )}
+                    </button>
+
+                    {/* Logout */}
                     <button
                         onClick={logout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-rose-500/10"
-                        style={{ color: 'var(--color-text-secondary)' }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer group relative"
+                        style={{
+                            color: 'var(--color-text-secondary)',
+                            transition: 'all 0.25s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+                            e.currentTarget.style.color = '#ef4444';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = 'var(--color-text-secondary)';
+                        }}
                     >
-                        <LogOut size={18} />
-                        <span className="flex-1 text-left">{t('admin.logout') || 'Log Out'}</span>
+                        <LogOut size={20} className="flex-shrink-0" />
+                        <span
+                            style={{
+                                opacity: isExpanded ? 1 : 0,
+                                width: isExpanded ? 'auto' : 0,
+                                overflow: 'hidden',
+                                transition: 'opacity 0.25s ease',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                                textAlign: 'left',
+                            }}
+                        >
+                            {t('admin.logout') || 'Log Out'}
+                        </span>
+                        {!isExpanded && (
+                            <div className="sidebar-tooltip">
+                                {t('admin.logout') || 'Log Out'}
+                            </div>
+                        )}
                     </button>
                 </div>
 
-                {/* Language Toggle */}
+                {/* Collapse Toggle */}
                 <div className="px-3 pb-4">
                     <button
-                        onClick={toggleLanguage}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-                        style={{ backgroundColor: 'var(--color-bg-card)', color: 'var(--color-text-secondary)' }}
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="w-full flex items-center justify-center py-2 rounded-xl cursor-pointer"
+                        style={{
+                            backgroundColor: 'rgba(255,255,255,0.03)',
+                            color: 'var(--color-text-muted)',
+                            transition: 'all 0.25s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+                            e.currentTarget.style.color = 'var(--color-text-secondary)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
+                            e.currentTarget.style.color = 'var(--color-text-muted)';
+                        }}
                     >
-                        <Globe size={18} />
-                        <span className="flex-1 text-left">{currentLang === 'en' ? 'Español' : 'English'}</span>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-accent-glow)', color: 'var(--color-accent-blue)' }}>
-                            {currentLang.toUpperCase()}
-                        </span>
+                        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-                <div className="p-8 max-w-7xl mx-auto animate-fade-in">
-                    <Outlet />
-                </div>
-            </main>
+            {/* ═══ MAIN CONTENT AREA ═══ */}
+            <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+                {/* Top Header Bar */}
+                <header
+                    className="flex items-center justify-between px-8 py-4 flex-shrink-0"
+                    style={{
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        backgroundColor: 'rgba(10, 10, 15, 0.5)',
+                        backdropFilter: 'blur(12px)',
+                    }}
+                >
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="w-2 h-2 rounded-full"
+                            style={{ background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))' }}
+                        />
+                        <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                            {currentNav ? t(currentNav.labelKey) : 'Dashboard'}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                            {new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                        <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                            style={{
+                                background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-tertiary))',
+                                color: '#fff',
+                            }}
+                        >
+                            A
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto" style={{ backgroundColor: 'transparent' }}>
+                    <div className="p-8 max-w-7xl mx-auto animate-fade-in">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

@@ -58,11 +58,12 @@ let UsersService = class UsersService {
                 role: true,
                 preferredLanguage: true,
                 preferredCurrency: true,
+                address: true,
                 registeredAt: true,
             },
         });
     }
-    async updatePreferences(userId, data) {
+    async updateProfile(userId, data) {
         return this.prisma.user.update({
             where: { id: userId },
             data,
@@ -73,8 +74,16 @@ let UsersService = class UsersService {
                 role: true,
                 preferredLanguage: true,
                 preferredCurrency: true,
+                address: true,
             },
         });
+    }
+    async savePushToken(userId, token) {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { expoPushToken: token },
+        });
+        return { saved: true };
     }
 };
 exports.UsersService = UsersService;

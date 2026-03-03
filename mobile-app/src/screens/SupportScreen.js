@@ -17,8 +17,7 @@ import { COLORS } from '../theme/colors';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../../../shared-logic/apiClient';
 
-const SupportScreen = ({ navigation }) => {
-    const { t } = useLanguage();
+const SupportScreen = ({ navigation }) => {    const { t } = useLanguage();
     const [phone, setPhone] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -174,5 +173,4 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
 });
-
 export default SupportScreen;

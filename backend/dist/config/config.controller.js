@@ -61,7 +61,8 @@ let ConfigController = class ConfigController {
         this.configGateway = configGateway;
     }
     getConfig(req) {
-        return this.configService.getConfig(req.user.empresaId);
+        const empresaId = req?.user?.empresaId || 'default';
+        return this.configService.getConfig(empresaId);
     }
     async updateConfig(req, dto) {
         const updated = await this.configService.updateConfig(req.user.empresaId, dto);
@@ -72,7 +73,6 @@ let ConfigController = class ConfigController {
 exports.ConfigController = ConfigController;
 __decorate([
     (0, common_1.Get)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),

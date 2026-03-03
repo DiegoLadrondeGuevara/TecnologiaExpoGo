@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
     FlatList,
     StyleSheet,
     Alert,
-    ActivityIndicator,
+    TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CreditCard } from 'lucide-react-native';
+import { CreditCard, MapPin, ChevronRight } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatPrice } from 'shared-logic/currency';
-import { createOrder } from '../api/paymentService';
 import CartItem from '../components/CartItem';
 import CustomButton from '../components/CustomButton';
 import EmptyState from '../components/EmptyState';
 
-const CartScreen = ({ navigation }) => {
-    const {
+const CartScreen = ({ navigation }) => {    const {
         cartItems,
         subtotal,
         tax,
@@ -27,31 +26,22 @@ const CartScreen = ({ navigation }) => {
         updateQuantity,
         removeFromCart,
     } = useCart();
-    const { t, currency, exchangeRate } = useLanguage();
-    const [checkoutLoading, setCheckoutLoading] = useState(false);
+    const { user } = useAuth();
+    const { t, currency } = useLanguage();
 
-    const handleCheckout = async () => {
-        if (cartItems.length === 0) return;
-
-        setCheckoutLoading(true);
+    // Parse saved address from user profile
+    const savedAddress = useMemo(() => {
+        if (!user?.address) return null;
         try {
-            // 1. Create the order on the backend
-            const order = await createOrder(
-                cartItems,
-                currency,
-                currency === 'PEN' ? exchangeRate : 1,
-            );
-
-            // 2. Navigate to Payment screen with the orderId
-            navigation.navigate('Payment', { orderId: order.id, total });
-        } catch (error) {
-            Alert.alert(
-                'Error',
-                error.message || 'Could not create your order. Please try again.',
-            );
-        } finally {
-            setCheckoutLoading(false);
+            return JSON.parse(user.address);
+        } catch {
+            return { label: '', address: user.address };
         }
+    }, [user?.address]);
+
+    const handleCheckout = () => {
+        if (cartItems.length === 0) return;
+        navigation.navigate('ShippingAddress');
     };
 
     const handleRemove = (productId) => {
@@ -90,6 +80,40 @@ const CartScreen = ({ navigation }) => {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListHeaderComponent={() => (
+                    /* Shipping Address Preview */
+                    <TouchableOpacity
+                        style={styles.addressCard}
+                        onPress={() => navigation.navigate('ShippingAddress')}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.addressLeft}>
+                            <View style={styles.addressIconBox}>
+                                <MapPin size={18} color={COLORS.black} />
+                            </View>
+                            <View style={styles.addressInfo}>
+                                <Text style={styles.addressLabel}>
+                                    {t('address.shippingTo') || 'Shipping to'}
+                                </Text>
+                                {savedAddress ? (
+                                    <>
+                                        <Text style={styles.addressTag} numberOfLines={1}>
+                                            {savedAddress.label || 'Address'}
+                                        </Text>
+                                        <Text style={styles.addressText} numberOfLines={1}>
+                                            {savedAddress.address}
+                                        </Text>
+                                    </>
+                                ) : (
+                                    <Text style={styles.addressEmpty}>
+                                        {t('address.tapToAdd') || 'Tap to add shipping address'}
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+                        <ChevronRight size={18} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                )}
                 renderItem={({ item }) => (
                     <CartItem
                         item={item}
@@ -122,17 +146,10 @@ const CartScreen = ({ navigation }) => {
 
             <View style={styles.checkoutBar}>
                 <CustomButton
-                    title={checkoutLoading ? '' : t('cart.checkout')}
+                    title={t('cart.checkout')}
                     onPress={handleCheckout}
-                    disabled={checkoutLoading}
-                    icon={
-                        checkoutLoading ? (
-                            <ActivityIndicator color={COLORS.white} size="small" />
-                        ) : (
-                            <CreditCard size={18} color={COLORS.white} />
-                        )
-                    }
-                    style={[styles.checkoutBtn, checkoutLoading && styles.checkoutBtnDisabled]}
+                    icon={<CreditCard size={18} color={COLORS.white} />}
+                    style={styles.checkoutBtn}
                 />
             </View>
         </SafeAreaView>
@@ -169,6 +186,62 @@ const styles = StyleSheet.create({
     list: {
         paddingHorizontal: 16,
         paddingBottom: 120,
+    },
+    addressCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: COLORS.card,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    addressLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+    },
+    addressIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: COLORS.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    addressInfo: {
+        flex: 1,
+    },
+    addressLabel: {
+        color: COLORS.textSecondary,
+        fontSize: 11,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    addressTag: {
+        color: COLORS.textPrimary,
+        fontSize: 15,
+        fontWeight: '700',
+        marginTop: 2,
+    },
+    addressText: {
+        color: COLORS.textSecondary,
+        fontSize: 13,
+        fontWeight: '500',
+        marginTop: 1,
+    },
+    addressEmpty: {
+        color: COLORS.textSecondary,
+        fontSize: 13,
+        fontWeight: '600',
+        fontStyle: 'italic',
+        marginTop: 2,
     },
     summaryCard: {
         backgroundColor: COLORS.card,
@@ -227,9 +300,5 @@ const styles = StyleSheet.create({
     checkoutBtn: {
         width: '100%',
     },
-    checkoutBtnDisabled: {
-        opacity: 0.7,
-    },
 });
-
 export default CartScreen;

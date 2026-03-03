@@ -5,15 +5,25 @@
 import axios from 'axios';
 
 // ─── Lógica de URL Base Dinámica ───
+let _customBaseUrl = null;
+
+/** Call this BEFORE any API request to override the base URL (used by Vite dashboard) */
+export const setBaseUrl = (url) => {
+    _customBaseUrl = url;
+    if (apiClient) apiClient.defaults.baseURL = url;
+};
+
 const getBaseUrl = () => {
-    // 1. Prioridad: Variables de entorno de Expo (Mobile)
+    // 1. Custom URL set by the host app (e.g., Vite dashboard)
+    if (_customBaseUrl) return _customBaseUrl;
+
+    // 2. Variables de entorno de Expo (Mobile)
     if (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) {
         return process.env.EXPO_PUBLIC_API_URL;
     }
 
-    // 2. Fallback: Tu IP local (Obligatorio para que el móvil vea tu PC)
-    // Se usa esta IP si no hay variables de entorno configuradas
-    return 'http://192.168.100.12:3001/api';
+    // 3. Fallback: localhost (para desarrollo local)
+    return 'http://localhost:3001/api';
 };
 
 const apiClient = axios.create({

@@ -12,8 +12,8 @@ export declare class ConfigController {
     private configGateway;
     constructor(configService: AppConfigService, configGateway: ConfigGateway);
     getConfig(req: {
-        user: {
-            empresaId: string;
+        user?: {
+            empresaId?: string;
         };
     }): Promise<{
         id: string;
@@ -22,6 +22,12 @@ export declare class ConfigController {
         defaultLanguage: string;
         defaultCurrency: string;
         baseCurrency: string;
+        exchangeRatePEN: number;
+        taxRate: number;
+        maintenanceMode: boolean;
+    } | {
+        defaultLanguage: string;
+        defaultCurrency: string;
         exchangeRatePEN: number;
         taxRate: number;
         maintenanceMode: boolean;

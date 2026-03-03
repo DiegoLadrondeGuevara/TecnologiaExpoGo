@@ -12,10 +12,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrdersController = exports.CreateOrderDto = void 0;
+exports.OrdersController = exports.UpdateOrderStatusDto = exports.CreateOrderDto = void 0;
 const common_1 = require("@nestjs/common");
 const orders_service_1 = require("./orders.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class OrderItemDto {
@@ -36,6 +38,7 @@ class CreateOrderDto {
     items;
     currency;
     exchangeRate;
+    shippingAddress;
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
@@ -53,6 +56,20 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "exchangeRate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "shippingAddress", void 0);
+class UpdateOrderStatusDto {
+    status;
+}
+exports.UpdateOrderStatusDto = UpdateOrderStatusDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], UpdateOrderStatusDto.prototype, "status", void 0);
 let OrdersController = class OrdersController {
     ordersService;
     constructor(ordersService) {
@@ -61,8 +78,14 @@ let OrdersController = class OrdersController {
     create(req, dto) {
         return this.ordersService.create(req.user.id, dto);
     }
+    cancel(req, id) {
+        return this.ordersService.cancelOrder(id, req.user.id);
+    }
     findAll(req) {
         return this.ordersService.findAll(req.user.id, req.user.role);
+    }
+    updateStatus(id, dto) {
+        return this.ordersService.updateStatus(id, dto.status);
     }
 };
 exports.OrdersController = OrdersController;
@@ -75,12 +98,30 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "create", null);
 __decorate([
+    (0, common_1.Delete)(':id/cancel'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "cancel", null);
+__decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, UpdateOrderStatusDto]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "updateStatus", null);
 exports.OrdersController = OrdersController = __decorate([
     (0, common_1.Controller)('orders'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

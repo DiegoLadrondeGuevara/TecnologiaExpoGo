@@ -12,28 +12,48 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UsersController = exports.UpdatePreferencesDto = void 0;
+exports.UsersController = exports.SavePushTokenDto = exports.UpdateProfileDto = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const class_validator_1 = require("class-validator");
-class UpdatePreferencesDto {
+class UpdateProfileDto {
+    name;
+    address;
     preferredLanguage;
     preferredCurrency;
 }
-exports.UpdatePreferencesDto = UpdatePreferencesDto;
+exports.UpdateProfileDto = UpdateProfileDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdatePreferencesDto.prototype, "preferredLanguage", void 0);
+], UpdateProfileDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdatePreferencesDto.prototype, "preferredCurrency", void 0);
+], UpdateProfileDto.prototype, "address", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "preferredLanguage", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "preferredCurrency", void 0);
+class SavePushTokenDto {
+    token;
+}
+exports.SavePushTokenDto = SavePushTokenDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SavePushTokenDto.prototype, "token", void 0);
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -45,8 +65,11 @@ let UsersController = class UsersController {
     findMe(req) {
         return this.usersService.findMe(req.user.id);
     }
-    updatePreferences(req, dto) {
-        return this.usersService.updatePreferences(req.user.id, dto);
+    updateProfile(req, dto) {
+        return this.usersService.updateProfile(req.user.id, dto);
+    }
+    savePushToken(req, dto) {
+        return this.usersService.savePushToken(req.user.id, dto.token);
     }
 };
 exports.UsersController = UsersController;
@@ -71,9 +94,17 @@ __decorate([
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, UpdatePreferencesDto]),
+    __metadata("design:paramtypes", [Object, UpdateProfileDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "updatePreferences", null);
+], UsersController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Post)('me/push-token'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, SavePushTokenDto]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "savePushToken", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -19,6 +19,9 @@ const users_module_1 = require("./users/users.module");
 const orders_module_1 = require("./orders/orders.module");
 const payments_module_1 = require("./payments/payments.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
+const store_settings_module_1 = require("./store-settings/store-settings.module");
+const reviews_module_1 = require("./reviews/reviews.module");
+const notifications_module_1 = require("./notifications/notifications.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,6 +38,9 @@ exports.AppModule = AppModule = __decorate([
             orders_module_1.OrdersModule,
             payments_module_1.PaymentsModule,
             dashboard_module_1.DashboardModule,
+            store_settings_module_1.StoreSettingsModule,
+            reviews_module_1.ReviewsModule,
+            notifications_module_1.NotificationsModule,
         ],
         providers: [
             {

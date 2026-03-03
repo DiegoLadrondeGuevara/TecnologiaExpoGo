@@ -1,7 +1,12 @@
 import { UsersService } from './users.service';
-export declare class UpdatePreferencesDto {
+export declare class UpdateProfileDto {
+    name?: string;
+    address?: string;
     preferredLanguage?: string;
     preferredCurrency?: string;
+}
+export declare class SavePushTokenDto {
+    token: string;
 }
 export declare class UsersController {
     private usersService;
@@ -32,18 +37,27 @@ export declare class UsersController {
         role: string;
         preferredLanguage: string;
         preferredCurrency: string;
+        address: string | null;
         registeredAt: Date;
     } | null>;
-    updatePreferences(req: {
+    updateProfile(req: {
         user: {
             id: string;
         };
-    }, dto: UpdatePreferencesDto): Promise<{
+    }, dto: UpdateProfileDto): Promise<{
         id: string;
         email: string;
         name: string;
         role: string;
         preferredLanguage: string;
         preferredCurrency: string;
+        address: string | null;
+    }>;
+    savePushToken(req: {
+        user: {
+            id: string;
+        };
+    }, dto: SavePushTokenDto): Promise<{
+        saved: boolean;
     }>;
 }

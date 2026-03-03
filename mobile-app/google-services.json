@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "798701510111",
+    "project_id": "techstore-a397a",
+    "storage_bucket": "techstore-a397a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798701510111:android:78002ae8cbd9093226386a",
+        "android_client_info": {
+          "package_name": "com.academiaharvard.techstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdf-MNKkZPcXrQsMQCN4Sm2EHuxJ8kCuc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

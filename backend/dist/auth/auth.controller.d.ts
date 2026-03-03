@@ -6,8 +6,11 @@ export declare class RegisterDto {
     role?: string;
 }
 export declare class LoginDto {
-    email: string;
+    identifier: string;
     password: string;
+}
+export declare class GoogleLoginDto {
+    idToken: string;
 }
 export declare class AuthController {
     private authService;
@@ -27,6 +30,17 @@ export declare class AuthController {
             name: string;
             email: string;
             role: string;
+            avatarUrl: string | null;
+        };
+        access_token: string;
+    }>;
+    loginWithGoogle(dto: GoogleLoginDto): Promise<{
+        user: {
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+            avatarUrl: string | null;
         };
         access_token: string;
     }>;

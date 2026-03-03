@@ -10,7 +10,14 @@ export class ConfigService {
             where: { empresaId },
         });
         if (!config) {
-            throw new NotFoundException('Configuration not found');
+            // Return sensible defaults if no config record exists
+            return {
+                defaultLanguage: 'en',
+                defaultCurrency: 'USD',
+                exchangeRatePEN: 3.80,
+                taxRate: 0.16,
+                maintenanceMode: false,
+            };
         }
         return config;
     }

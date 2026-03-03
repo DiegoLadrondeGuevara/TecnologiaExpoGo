@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Tag, X, Layers, Check } from 'lucide-react';
 import { fetchCategories, createCategory, deleteCategory } from '../services/api';
 
-const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#facc15', '#22c55e'];
+const PRESET_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#facc15', '#22c55e'];
 
 export default function CategoriesPage() {
     const { t } = useTranslation();
@@ -34,60 +34,72 @@ export default function CategoriesPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                <div className="w-12 h-12 rounded-full border-4 border-gray-800 border-t-blue-500 animate-spin" />
-                <p className="text-gray-400 font-medium animate-pulse">{t('admin.loading')}...</p>
+                <div className="modern-spinner" />
+                <p className="font-medium animate-pulse" style={{ color: 'var(--color-text-muted)' }}>{t('admin.loading')}...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
                 <div>
-                    <h2 className="text-3xl font-extrabold tracking-tight text-white">{t('admin.categories')}</h2>
-                    <p className="text-gray-400 text-sm mt-1">{t('admin.manage_categories_desc', { defaultValue: 'Organiza tus productos por grupos y colores.' })}</p>
+                    <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{t('admin.categories')}</h2>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.manage_categories_desc', { defaultValue: 'Organiza tus productos por grupos y colores.' })}</p>
                 </div>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 shadow-lg ${showForm ? 'bg-rose-500 shadow-rose-500/20' : 'bg-blue-600 shadow-blue-600/20 hover:bg-blue-500'
-                        } text-white`}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
+                    style={{
+                        background: showForm
+                            ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                            : 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                        boxShadow: showForm
+                            ? '0 4px 16px rgba(239, 68, 68, 0.3)'
+                            : '0 4px 16px rgba(99, 102, 241, 0.3)',
+                        transition: 'all 0.3s ease',
+                    }}
                 >
                     {showForm ? <X size={18} /> : <Plus size={18} />}
                     {showForm ? t('common.cancel') : t('admin.addCategory')}
                 </button>
             </div>
 
-            {/* Formulario de Creación con Estilo Premium */}
+            {/* Create Form */}
             {showForm && (
-                <div className="bg-[#2c2c2e] rounded-2xl p-6 border border-white/5 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+                <div className="glass-card p-6 animate-slide-down">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
                         <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">{t('admin.categoryName')}</label>
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.categoryName')}</label>
                             <div className="relative">
-                                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                <Tag className="absolute left-3 top-1/2 -translate-y-1/2" size={18} style={{ color: 'var(--color-text-muted)' }} />
                                 <input
                                     type="text"
                                     value={newName}
                                     onChange={e => setNewName(e.target.value)}
                                     placeholder="e.g. Smartphones"
-                                    className="w-full bg-[#1c1c1e] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
+                                    className="glass-input w-full rounded-xl py-3 pl-10 pr-4 text-white font-medium"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Color Theme</label>
-                            <div className="flex flex-wrap gap-3 p-1 bg-[#1c1c1e] rounded-xl border border-white/5 w-fit">
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>Color Theme</label>
+                            <div className="flex flex-wrap gap-3 p-2 rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}>
                                 {PRESET_COLORS.map(c => (
                                     <button
                                         key={c}
                                         onClick={() => setNewColor(c)}
-                                        className="w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center group relative"
-                                        style={{ backgroundColor: c }}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center relative hover-scale"
+                                        style={{
+                                            backgroundColor: c,
+                                            boxShadow: newColor === c ? `0 0 16px ${c}60` : 'none',
+                                            transform: newColor === c ? 'scale(1.15)' : 'scale(1)',
+                                            transition: 'all 0.2s ease',
+                                        }}
                                     >
                                         {newColor === c && <Check size={16} className="text-white" />}
-                                        <div className="absolute -bottom-1 w-0 h-0.5 bg-white rounded-full group-hover:w-4 transition-all" />
                                     </button>
                                 ))}
                             </div>
@@ -96,7 +108,12 @@ export default function CategoriesPage() {
                         <button
                             onClick={handleCreate}
                             disabled={!newName.trim()}
-                            className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20"
+                            className="font-bold py-3.5 rounded-xl text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
+                                transition: 'all 0.3s ease',
+                            }}
                         >
                             {t('common.save')}
                         </button>
@@ -104,55 +121,77 @@ export default function CategoriesPage() {
                 </div>
             )}
 
-            {/* Grid de Categorías */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Category Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {categories.map((cat, i) => (
                     <div
                         key={cat.id}
-                        className="group relative bg-[#2c2c2e] rounded-2xl p-6 border border-white/5 transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl shadow-black/40"
-                        style={{ animationDelay: `${i * 50}ms` }}
+                        className={`group relative glass-card glass-card-hover hover-lift p-6 overflow-hidden animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
                     >
                         <div className="flex items-start justify-between mb-6">
-                            <div className="p-3 rounded-2xl shadow-inner" style={{ backgroundColor: `${cat.color}15` }}>
+                            <div
+                                className="p-3 rounded-xl"
+                                style={{
+                                    background: `${cat.color}12`,
+                                    boxShadow: `0 0 20px ${cat.color}10`,
+                                }}
+                            >
                                 <Layers size={24} style={{ color: cat.color }} />
                             </div>
                             <button
                                 onClick={() => handleDelete(cat.id)}
-                                className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:text-white"
+                                className="p-2.5 rounded-xl opacity-0 group-hover:opacity-100"
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.08)',
+                                    color: '#f87171',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = '#f87171'; }}
                             >
                                 <Trash2 size={16} />
                             </button>
                         </div>
 
                         <div className="space-y-1">
-                            <h3 className="text-lg font-black text-white group-hover:text-blue-400 transition-colors">{cat.name}</h3>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)', transition: 'color 0.2s ease' }}>{cat.name}</h3>
+                            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                                 {cat.productCount} {t('admin.products')}
                             </p>
                         </div>
 
-                        {/* Visualizer Bar */}
+                        {/* Progress bar */}
                         <div className="mt-6">
-                            <div className="flex justify-between text-[10px] font-black text-gray-600 uppercase tracking-tighter mb-2">
+                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }}>
                                 <span>Density</span>
                                 <span>{Math.min(Math.round((cat.productCount / 20) * 100), 100)}%</span>
                             </div>
-                            <div className="h-2 bg-black/20 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
                                 <div
-                                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                                    className="h-full rounded-full"
                                     style={{
                                         backgroundColor: cat.color,
                                         width: `${Math.min((cat.productCount / 20) * 100, 100)}%`,
-                                        boxShadow: `0 0 15px ${cat.color}40`
+                                        boxShadow: `0 0 12px ${cat.color}40`,
+                                        transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
                                     }}
                                 />
                             </div>
                         </div>
 
-                        {/* Decorative Background Icon */}
-                        <div className="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        {/* Background decoration */}
+                        <div className="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.06]" style={{ transition: 'opacity 0.3s ease' }}>
                             <Tag size={80} style={{ color: cat.color }} />
                         </div>
+
+                        {/* Top gradient line */}
+                        <div
+                            className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100"
+                            style={{
+                                background: `linear-gradient(90deg, ${cat.color}, transparent)`,
+                                transition: 'opacity 0.3s ease',
+                            }}
+                        />
                     </div>
                 ))}
             </div>

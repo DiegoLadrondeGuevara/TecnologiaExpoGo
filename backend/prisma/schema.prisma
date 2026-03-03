@@ -43,17 +43,23 @@ model AppConfig {
 model User {
   id                String   @id @default(uuid())
   name              String
+  username          String?  @unique
   email             String   @unique
-  passwordHash      String
+  passwordHash      String?
+  googleId          String?  @unique
+  avatarUrl         String?
   role              String   @default("CUSTOMER")
   preferredLanguage String   @default("en")
   preferredCurrency String   @default("USD")
+  address           String?
+  expoPushToken     String?
   empresaId         String
   registeredAt      DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   empresa Empresa @relation(fields: [empresaId], references: [id])
   orders  Order[]
+  reviews Review[]
 }
 
 // ─── CATEGORIES ───
@@ -87,20 +93,22 @@ model Product {
   category   Category    @relation(fields: [categoryId], references: [id])
   empresa    Empresa     @relation(fields: [empresaId], references: [id])
   orderItems OrderItem[]
+  reviews    Review[]
 }
 
 // ─── ORDERS ───
 model Order {
-  id           String   @id @default(uuid())
-  userId       String
-  subtotal     Float
-  tax          Float
-  total        Float
-  currency     String
-  exchangeRate Float
-  status       String   @default("pending")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  userId          String
+  subtotal        Float
+  tax             Float
+  total           Float
+  currency        String
+  exchangeRate    Float
+  shippingAddress String?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   user    User        @relation(fields: [userId], references: [id])
   items   OrderItem[]
@@ -134,3 +142,28 @@ model Payment {
 
   order Order @relation(fields: [orderId], references: [id])
 }
+
+// ─── STORE SETTINGS (Global Key/Value Config) ───
+model StoreSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ─── REVIEWS ───
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  stars     Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId]) // One review per user per product
+}
+

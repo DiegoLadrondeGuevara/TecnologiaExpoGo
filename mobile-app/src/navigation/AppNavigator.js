@@ -4,7 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, ShoppingCart, User } from 'lucide-react-native';
-import { COLORS } from '../theme/colors';
+import { getColors } from '../theme/colors';
+import { navigationRef } from './navigationRef';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +21,8 @@ import MyOrdersScreen from '../screens/MyOrdersScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SupportScreen from '../screens/SupportScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import ShippingAddressScreen from '../screens/ShippingAddressScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,6 +47,7 @@ const HomeStack = () => (
 const CartStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="ShippingAddress" component={ShippingAddressScreen} />
         <Stack.Screen name="Payment" component={PaymentScreen} />
     </Stack.Navigator>
 );
@@ -53,50 +57,81 @@ const ProfileStack = () => (
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="ShippingAddress" component={ShippingAddressScreen} />
         <Stack.Screen name="Support" component={SupportScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Favorites" component={FavoritesScreen} />
     </Stack.Navigator>
 );
 
 const CartBadge = ({ count }) => {
+    const COLORS = getColors();
     if (count === 0) return null;
     return (
-        <View style={styles.badge}>
-            <Text style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
+        <View style={{
+            position: 'absolute',
+            right: -8,
+            top: -4,
+            backgroundColor: COLORS.danger,
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 4,
+        }}>
+            <Text style={{ color: COLORS.white, fontSize: 10, fontWeight: '800' }}>
+                {count > 9 ? '9+' : count}
+            </Text>
         </View>
     );
 };
 
 // ─── Loading Screen ───
-const LoadingScreen = () => (
-    <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.black} />
-    </View>
-);
+const LoadingScreen = () => {
+    const COLORS = getColors();
+    return (
+        <View style={{ flex: 1, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color={COLORS.black} />
+        </View>
+    );
+};
 
 const AppNavigator = () => {
+    const COLORS = getColors();
     const { itemCount } = useCart();
     const { t } = useLanguage();
     const { isAuthenticated, isLoading } = useAuth();
 
     if (isLoading) {
         return (
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <LoadingScreen />
             </NavigationContainer>
         );
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             {isAuthenticated ? (
                 <Tab.Navigator
                     screenOptions={{
                         headerShown: false,
-                        tabBarStyle: styles.tabBar,
+                        tabBarStyle: {
+                            backgroundColor: COLORS.card,
+                            borderTopColor: COLORS.border,
+                            borderTopWidth: StyleSheet.hairlineWidth,
+                            height: 85,
+                            paddingTop: 8,
+                            paddingBottom: 28,
+                        },
                         tabBarActiveTintColor: COLORS.black,
                         tabBarInactiveTintColor: COLORS.textSecondary,
-                        tabBarLabelStyle: styles.tabLabel,
+                        tabBarLabelStyle: {
+                            fontSize: 11,
+                            fontWeight: '600',
+                            marginTop: 2,
+                        },
                     }}
                 >
                     <Tab.Screen
@@ -139,44 +174,5 @@ const AppNavigator = () => {
         </NavigationContainer>
     );
 };
-
-const styles = StyleSheet.create({
-    loadingContainer: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    tabBar: {
-        backgroundColor: COLORS.card,
-        borderTopColor: COLORS.border,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        height: 85,
-        paddingTop: 8,
-        paddingBottom: 28,
-    },
-    tabLabel: {
-        fontSize: 11,
-        fontWeight: '600',
-        marginTop: 2,
-    },
-    badge: {
-        position: 'absolute',
-        right: -8,
-        top: -4,
-        backgroundColor: COLORS.danger,
-        minWidth: 18,
-        height: 18,
-        borderRadius: 9,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 4,
-    },
-    badgeText: {
-        color: COLORS.white,
-        fontSize: 10,
-        fontWeight: '800',
-    },
-});
 
 export default AppNavigator;

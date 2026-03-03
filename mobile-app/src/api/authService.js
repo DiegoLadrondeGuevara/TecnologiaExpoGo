@@ -1,14 +1,16 @@
 /**
- * Auth Service — API calls for login & register
+ * Auth Service — API calls for login, register & Google OAuth
  */
 import apiClient from 'shared-logic/apiClient';
 
 /**
- * Login with email and password
+ * Login with email/username and password
+ * @param {string} identifier - Email or username
+ * @param {string} password
  * @returns {{ user: { id, name, email, role }, access_token: string }}
  */
-export const loginUser = async (email, password) => {
-    return apiClient.post('/auth/login', { email, password });
+export const loginUser = async (identifier, password) => {
+    return apiClient.post('/auth/login', { identifier, password });
 };
 
 /**
@@ -22,6 +24,15 @@ export const registerUser = async (name, email, password) => {
         password,
         role: 'CUSTOMER',
     });
+};
+
+/**
+ * Login or register using a Google ID token
+ * @param {string} idToken - The ID token from Google Sign-In
+ * @returns {{ user: { id, name, email, role, avatarUrl }, access_token: string }}
+ */
+export const loginWithGoogle = async (idToken) => {
+    return apiClient.post('/auth/google', { idToken });
 };
 
 /**

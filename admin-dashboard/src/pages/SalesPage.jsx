@@ -33,161 +33,115 @@ export default function SalesPage() {
         paid: {
             label: i18n.language === 'es' ? 'Pagado' : 'Paid',
             icon: CheckCircle,
-            bg: 'bg-emerald-500/10',
-            color: 'text-emerald-500',
-            dot: 'bg-emerald-500',
-            border: 'border-emerald-500/20',
-            glow: 'shadow-emerald-500/5',
+            color: '#10b981',
+            bg: 'rgba(16, 185, 129, 0.08)',
         },
         pending: {
             label: i18n.language === 'es' ? 'Pendiente' : 'Pending',
             icon: Clock,
-            bg: 'bg-amber-500/10',
-            color: 'text-amber-500',
-            dot: 'bg-amber-500',
-            border: 'border-amber-500/20',
-            glow: 'shadow-amber-500/5',
+            color: '#f59e0b',
+            bg: 'rgba(245, 158, 11, 0.08)',
         },
     };
 
-    // Filter & search
     const filtered = orders
         .filter((o) => (filter === 'all' ? true : o.status === filter))
         .filter((o) => {
             if (!searchTerm) return true;
             const s = searchTerm.toLowerCase();
-            return (
-                o.id.toLowerCase().includes(s) ||
-                o.userName.toLowerCase().includes(s)
-            );
+            return o.id.toLowerCase().includes(s) || o.userName.toLowerCase().includes(s);
         });
 
-    // KPIs
-    const totalRevenue = orders
-        .filter((o) => o.status === 'paid')
-        .reduce((sum, o) => sum + o.total, 0);
+    const totalRevenue = orders.filter((o) => o.status === 'paid').reduce((sum, o) => sum + o.total, 0);
     const totalOrders = orders.length;
     const paidOrders = orders.filter((o) => o.status === 'paid').length;
     const uniqueCustomers = new Set(orders.map((o) => o.userName)).size;
 
+    const kpis = [
+        { icon: DollarSign, label: i18n.language === 'es' ? 'Ingresos Totales' : 'Total Revenue', value: formatPrice(totalRevenue, currency), gradient: 'linear-gradient(135deg, #10b981, #059669)', glow: 'rgba(16, 185, 129, 0.15)' },
+        { icon: ShoppingCart, label: i18n.language === 'es' ? 'Total Pedidos' : 'Total Orders', value: totalOrders, gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)', glow: 'rgba(99, 102, 241, 0.15)' },
+        { icon: TrendingUp, label: i18n.language === 'es' ? 'Pagados' : 'Paid', value: paidOrders, gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', glow: 'rgba(139, 92, 246, 0.15)' },
+        { icon: Users, label: i18n.language === 'es' ? 'Clientes' : 'Customers', value: uniqueCustomers, gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', glow: 'rgba(245, 158, 11, 0.15)' },
+    ];
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                <div className="w-12 h-12 rounded-full border-4 border-gray-800 border-t-blue-500 animate-spin" />
-                <p className="text-gray-400 font-medium animate-pulse">
-                    {t('admin.loading')}...
-                </p>
+                <div className="modern-spinner" />
+                <p className="font-medium animate-pulse" style={{ color: 'var(--color-text-muted)' }}>{t('admin.loading')}...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h2 className="text-3xl font-extrabold tracking-tight text-white">
-                        {i18n.language === 'es' ? 'Ventas' : 'Sales'}
-                    </h2>
-                    <p className="text-gray-400 text-sm mt-1">
-                        {i18n.language === 'es'
-                            ? 'Historial completo de pedidos y ventas.'
-                            : 'Complete order and sales history.'}
-                    </p>
-                </div>
+            <div className="animate-fade-in-up">
+                <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+                    {i18n.language === 'es' ? 'Ventas' : 'Sales'}
+                </h2>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    {i18n.language === 'es' ? 'Historial completo de pedidos y ventas.' : 'Complete order and sales history.'}
+                </p>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    {
-                        icon: DollarSign,
-                        label: i18n.language === 'es' ? 'Ingresos Totales' : 'Total Revenue',
-                        value: formatPrice(totalRevenue, currency),
-                        color: 'emerald',
-                    },
-                    {
-                        icon: ShoppingCart,
-                        label: i18n.language === 'es' ? 'Total Pedidos' : 'Total Orders',
-                        value: totalOrders,
-                        color: 'blue',
-                    },
-                    {
-                        icon: TrendingUp,
-                        label: i18n.language === 'es' ? 'Pagados' : 'Paid',
-                        value: paidOrders,
-                        color: 'violet',
-                    },
-                    {
-                        icon: Users,
-                        label: i18n.language === 'es' ? 'Clientes' : 'Customers',
-                        value: uniqueCustomers,
-                        color: 'amber',
-                    },
-                ].map(({ icon: Icon, label, value, color }, idx) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {kpis.map(({ icon: Icon, label, value, gradient, glow }, idx) => (
                     <div
                         key={idx}
-                        className={`bg-[#2c2c2e] p-5 rounded-2xl border border-white/5 flex items-center gap-4 shadow-xl hover:shadow-${color}-500/5 transition-shadow`}
+                        className={`glass-card glass-card-hover hover-lift p-5 flex items-center gap-4 relative overflow-hidden animate-fade-in-up stagger-${idx + 1}`}
                     >
-                        <div className={`p-3 bg-${color}-500/10 rounded-xl`}>
-                            <Icon size={22} className={`text-${color}-500`} />
+                        <div className="p-3 rounded-xl" style={{ background: gradient, boxShadow: `0 4px 16px ${glow}` }}>
+                            <Icon size={22} color="#fff" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                {label}
-                            </p>
-                            <p className="text-xl font-black text-white">{value}</p>
+                            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                            <p className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
                         </div>
+                        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: gradient, opacity: 0.5 }} />
                     </div>
                 ))}
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex p-1 bg-[#2c2c2e] rounded-xl border border-white/5">
+            <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-in-up stagger-5">
+                <div className="flex p-1 rounded-xl" style={{ background: 'rgba(20,20,28,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
                     {['all', 'paid', 'pending'].map((f) => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className={`px-5 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filter === f
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                    : 'text-gray-400 hover:text-gray-200'
-                                }`}
+                            className="px-5 py-2 rounded-lg text-xs font-bold"
+                            style={{
+                                background: filter === f ? 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-tertiary))' : 'transparent',
+                                color: filter === f ? '#fff' : 'var(--color-text-muted)',
+                                boxShadow: filter === f ? '0 4px 12px rgba(99,102,241,0.3)' : 'none',
+                                transition: 'all 0.3s ease',
+                            }}
                         >
-                            {f === 'all'
-                                ? i18n.language === 'es'
-                                    ? 'Todos'
-                                    : 'All'
-                                : statusConfig[f]?.label}
+                            {f === 'all' ? (i18n.language === 'es' ? 'Todos' : 'All') : statusConfig[f]?.label}
                         </button>
                     ))}
                 </div>
 
                 <div className="relative group">
-                    <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors"
-                        size={16}
-                    />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s ease' }} />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder={
-                            i18n.language === 'es'
-                                ? 'Buscar pedido o cliente...'
-                                : 'Search order or customer...'
-                        }
-                        className="bg-[#2c2c2e] border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all w-64"
+                        placeholder={i18n.language === 'es' ? 'Buscar pedido o cliente...' : 'Search order or customer...'}
+                        className="glass-input rounded-xl py-2 pl-10 pr-4 text-sm text-white w-64"
                     />
                 </div>
             </div>
 
             {/* Orders Table */}
-            <div className="rounded-2xl border border-white/5 overflow-hidden shadow-2xl bg-[#1c1c1e]">
+            <div className="glass-card overflow-hidden animate-fade-in-up stagger-6">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="bg-white/[0.02]">
+                            <tr style={{ background: 'rgba(255,255,255,0.01)' }}>
                                 {[
                                     i18n.language === 'es' ? 'Pedido' : 'Order',
                                     i18n.language === 'es' ? 'Cliente' : 'Customer',
@@ -198,135 +152,67 @@ export default function SalesPage() {
                                     i18n.language === 'es' ? 'Estado' : 'Status',
                                     i18n.language === 'es' ? 'Fecha' : 'Date',
                                 ].map((h, i) => (
-                                    <th
-                                        key={i}
-                                        className="text-left px-6 py-4 text-xs font-black uppercase tracking-[0.15em] text-gray-500 border-b border-white/5"
-                                    >
-                                        {h}
-                                    </th>
+                                    <th key={i} className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody>
                             {filtered.map((order) => {
-                                const sc =
-                                    statusConfig[order.status] || statusConfig.pending;
+                                const sc = statusConfig[order.status] || statusConfig.pending;
                                 const isPaid = order.status === 'paid';
                                 return (
                                     <tr
                                         key={order.id}
-                                        className={`group transition-all duration-200 ${isPaid
-                                                ? 'hover:bg-emerald-500/[0.04] bg-emerald-500/[0.02]'
-                                                : 'hover:bg-white/[0.02]'
-                                            }`}
+                                        className="table-row-hover"
+                                        style={{
+                                            borderTop: '1px solid rgba(255,255,255,0.03)',
+                                            background: isPaid ? 'rgba(16, 185, 129, 0.02)' : 'transparent',
+                                        }}
                                     >
-                                        {/* Order ID */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <div
-                                                    className={`w-1.5 h-1.5 rounded-full ${isPaid
-                                                            ? 'bg-emerald-500'
-                                                            : 'bg-amber-500 animate-pulse'
-                                                        }`}
-                                                />
-                                                <span className="font-mono text-sm font-bold text-blue-400">
-                                                    #{order.id.slice(0, 8)}
-                                                </span>
+                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sc.color, boxShadow: !isPaid ? `0 0 6px ${sc.color}60` : 'none' }} />
+                                                <span className="font-mono text-sm font-bold" style={{ color: '#818cf8' }}>#{order.id.slice(0, 8)}</span>
                                             </div>
                                         </td>
-
-                                        {/* Customer */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-700 to-gray-800 border border-white/10 flex items-center justify-center text-[11px] font-black text-white shadow-inner">
-                                                    {order.userName
-                                                        .split(' ')
-                                                        .map((n) => n[0])
-                                                        .join('')}
+                                                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[11px] font-bold text-white" style={{ background: 'linear-gradient(135deg, #374151, #1f2937)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                                    {order.userName.split(' ').map((n) => n[0]).join('')}
                                                 </div>
                                                 <div>
-                                                    <span className="text-sm font-semibold text-gray-200 block">
-                                                        {order.userName}
-                                                    </span>
-                                                    {order.userEmail && (
-                                                        <span className="text-[10px] text-gray-500">
-                                                            {order.userEmail}
-                                                        </span>
-                                                    )}
+                                                    <span className="text-sm font-semibold block" style={{ color: 'var(--color-text-primary)' }}>{order.userName}</span>
+                                                    {order.userEmail && <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{order.userEmail}</span>}
                                                 </div>
                                             </div>
                                         </td>
-
-                                        {/* Items */}
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-gray-400 bg-white/5 px-3 py-1.5 rounded-lg w-fit">
-                                                <Package
-                                                    size={14}
-                                                    className="text-blue-500/70"
-                                                />
-                                                <span className="text-[11px] font-medium truncate max-w-[150px]">
-                                                    {order.items
-                                                        .map((i) => i.productName)
-                                                        .join(', ')}
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg w-fit" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                                <Package size={14} style={{ color: '#818cf8', opacity: 0.7 }} />
+                                                <span className="text-[11px] font-medium truncate max-w-[150px]" style={{ color: 'var(--color-text-muted)' }}>
+                                                    {order.items.map((i) => i.productName).join(', ')}
                                                 </span>
                                             </div>
                                         </td>
-
-                                        {/* Subtotal */}
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-medium text-gray-400">
-                                                {formatPrice(order.subtotal, currency)}
-                                            </span>
+                                            <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>{formatPrice(order.subtotal, currency)}</span>
                                         </td>
-
-                                        {/* Tax */}
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-medium text-gray-500">
-                                                {formatPrice(order.tax, currency)}
-                                            </span>
+                                            <span className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>{formatPrice(order.tax, currency)}</span>
                                         </td>
-
-                                        {/* Total */}
                                         <td className="px-6 py-4">
-                                            <span
-                                                className={`text-sm font-black ${isPaid
-                                                        ? 'text-emerald-400'
-                                                        : 'text-white'
-                                                    }`}
-                                            >
-                                                {formatPrice(order.total, currency)}
-                                            </span>
+                                            <span className="text-sm font-bold" style={{ color: isPaid ? '#10b981' : 'var(--color-text-primary)' }}>{formatPrice(order.total, currency)}</span>
                                         </td>
-
-                                        {/* Status */}
                                         <td className="px-6 py-4">
-                                            <div
-                                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider ${sc.bg} ${sc.color}`}
-                                            >
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider" style={{ background: sc.bg, color: sc.color }}>
                                                 <sc.icon size={12} />
                                                 {sc.label}
                                             </div>
                                         </td>
-
-                                        {/* Date */}
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-gray-300">
-                                                    {new Date(
-                                                        order.createdAt,
-                                                    ).toLocaleDateString(undefined, {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                    })}
-                                                </span>
-                                                <span className="text-[10px] text-gray-500 font-medium">
-                                                    {new Date(
-                                                        order.createdAt,
-                                                    ).toLocaleTimeString(undefined, {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </span>
+                                                <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{new Date(order.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</span>
+                                                <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>{new Date(order.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -336,21 +222,16 @@ export default function SalesPage() {
                     </table>
                 </div>
 
-                {/* Empty State */}
                 {filtered.length === 0 && (
                     <div className="py-20 text-center">
-                        <div className="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Filter size={32} className="text-gray-600" />
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                            <Filter size={32} style={{ color: 'var(--color-text-muted)' }} />
                         </div>
-                        <h3 className="text-white font-bold">
-                            {i18n.language === 'es'
-                                ? 'No se encontraron pedidos'
-                                : 'No orders found'}
+                        <h3 className="font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                            {i18n.language === 'es' ? 'No se encontraron pedidos' : 'No orders found'}
                         </h3>
-                        <p className="text-gray-500 text-sm mt-1">
-                            {i18n.language === 'es'
-                                ? 'Prueba cambiando el filtro o término de búsqueda.'
-                                : 'Try changing the filter or search term.'}
+                        <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                            {i18n.language === 'es' ? 'Prueba cambiando el filtro o término de búsqueda.' : 'Try changing the filter or search term.'}
                         </p>
                     </div>
                 )}

@@ -20,9 +20,12 @@ export declare class UsersService {
         role: string;
         preferredLanguage: string;
         preferredCurrency: string;
+        address: string | null;
         registeredAt: Date;
     } | null>;
-    updatePreferences(userId: string, data: {
+    updateProfile(userId: string, data: {
+        name?: string;
+        address?: string;
         preferredLanguage?: string;
         preferredCurrency?: string;
     }): Promise<{
@@ -32,5 +35,9 @@ export declare class UsersService {
         role: string;
         preferredLanguage: string;
         preferredCurrency: string;
+        address: string | null;
+    }>;
+    savePushToken(userId: string, token: string): Promise<{
+        saved: boolean;
     }>;
 }

@@ -15,7 +15,8 @@
         "back": "Back",
         "close": "Close",
         "language": "Language",
-        "currency": "Currency"
+        "currency": "Currency",
+        "items": "items"
     },
     "home": {
         "greeting_morning": "Good Morning 👋",
@@ -27,19 +28,33 @@
         "searchPlaceholder": "Search products...",
         "allCategories": "All",
         "noProductsFound": "No products found",
-        "lowStock": "Low stock"
+        "lowStock": "Low stock",
+        "all": "All",
+        "recentlyViewed": "Recently Viewed",
+        "clearRecent": "Clear",
+        "sortBy": "Sort by",
+        "sortDefault": "Default",
+        "sortPriceLow": "Price: Low to High",
+        "sortPriceHigh": "Price: High to Low",
+        "sortAZ": "Name: A → Z",
+        "sortZA": "Name: Z → A",
+        "sortTopRated": "Top Rated"
     },
     "details": {
         "specifications": "Specifications",
         "quantity": "Quantity",
         "unitsInStock": "{{count}} units in stock",
         "addToCart": "Add to Cart",
+        "added": "Added!",
         "total": "Total",
         "productNotFound": "Product not found",
         "continueShopping": "Continue Shopping",
         "goToCart": "Go to Cart",
         "addedToCart": "Added to Cart ✓",
-        "addedMessage": "{{quantity}}x {{name}} added to your cart"
+        "addedMessage": "{{quantity}}x {{name}} added to your cart",
+        "freeReturns": "Free Returns",
+        "warranty": "1 Year Warranty",
+        "fastShipping": "Fast Shipping"
     },
     "cart": {
         "title": "Shopping Cart",
@@ -47,7 +62,7 @@
         "item": "{{count}} item",
         "orderSummary": "Order Summary",
         "subtotal": "Subtotal",
-        "tax": "Tax (16%)",
+        "tax": "Tax (18%)",
         "total": "Total",
         "checkout": "Checkout",
         "emptyCart": "Your cart is empty",
@@ -56,17 +71,92 @@
         "removeConfirm": "Are you sure you want to remove this item?",
         "remove": "Remove"
     },
+    "address": {
+        "title": "Shipping Address",
+        "shippingAddress": "Shipping Address",
+        "shippingTo": "Shipping to",
+        "tapToAdd": "Tap to add shipping address",
+        "whereToShip": "Where should we deliver your order?",
+        "editTitle": "Edit your shipping address",
+        "subtitle": "Enter your shipping address or use GPS to auto-fill.",
+        "labelName": "Address Label",
+        "labelPlaceholder": "e.g. Home, Office, Work...",
+        "labelHint": "Give your address a name so you remember it easily",
+        "label": "Full Address",
+        "placeholder": "Street, number, city, zip code...",
+        "useMyLocation": "Use my current location",
+        "locating": "Getting your location...",
+        "orEnterManually": "or enter manually",
+        "continue": "Continue to Payment",
+        "required": "Address Required",
+        "requiredMessage": "Please enter a shipping address to continue.",
+        "permissionDenied": "Permission Denied",
+        "permissionMessage": "Please enable location permissions in your device settings.",
+        "locationError": "Could not get your location. Please enter the address manually."
+    },
     "profile": {
         "title": "Profile",
         "orders": "Orders",
         "wishlist": "Wishlist",
         "spent": "Spent",
         "notifications": "Notifications",
+        "favorites": "Favorites",
+        "language": "Language",
         "settings": "Settings",
         "helpSupport": "Help & Support",
         "signOut": "Sign Out",
+        "signOutConfirm": "Are you sure you want to sign out?",
+        "myOrders": "My Orders",
         "switchLanguage": "Switch Language",
         "version": "TechStore v1.0.0"
+    },
+    "favorites": {
+        "empty": "No favorites yet",
+        "emptyMessage": "Products you mark as favorites will appear here."
+    },
+    "notifications": {
+        "promoTitle": "Deals for You",
+        "promoSubtitle": "Recommended products based on your activity",
+        "basedOnCart": "Based on your cart",
+        "trending": "Trending Now",
+        "noRecommendations": "No recommendations available right now",
+        "fewLeft": "Few left!"
+    },
+    "reviews": {
+        "title": "Reviews",
+        "write": "Write",
+        "yourRating": "Your rating",
+        "commentPlaceholder": "Share your experience (optional)",
+        "submit": "Submit",
+        "noReviews": "No reviews yet. Be the first!",
+        "loginRequired": "Login Required",
+        "loginMessage": "Please log in to leave a review.",
+        "error": "Error",
+        "mustPurchase": "You can only review products you have purchased.",
+        "alreadyReviewed": "You already reviewed this product."
+    },
+    "notification": {
+        "welcome": "Welcome back!",
+        "welcomeMessage": "Great to see you"
+    },
+    "settings": {
+        "name": "Full Name",
+        "address": "Address",
+        "save": "Save Changes",
+        "saved": "Updated successfully",
+        "notSet": "Not set",
+        "nameRequired": "Name is required",
+        "theme": "Appearance",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "support": {
+        "title": "Need help?",
+        "subtitle": "Chat with us on WhatsApp for quick support.",
+        "contactWhatsApp": "Contact via WhatsApp",
+        "whatsappMessage": "Hello! I need help with TechStore.",
+        "unavailable": "Support phone not configured."
     },
     "payment": {
         "title": "Payment",
@@ -121,6 +211,7 @@
         "confirmDelete": "Are you sure you want to delete this item?",
         "specs": "Specifications",
         "sales": "Sales",
+        "settings": "Settings",
         "loading": "Loading"
     }
 }

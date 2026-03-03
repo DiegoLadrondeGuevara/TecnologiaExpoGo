@@ -17,13 +17,13 @@ import {
     ChevronRight,
     Bell,
     Globe,
+    Heart,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
-const ProfileScreen = ({ navigation }) => {
-    const { user, logout } = useAuth();
+const ProfileScreen = ({ navigation }) => {    const { user, logout } = useAuth();
     const { t, locale, toggleLanguage } = useLanguage();
 
     const handleLogout = () => {
@@ -46,6 +46,11 @@ const ProfileScreen = ({ navigation }) => {
             icon: ShoppingBag,
             label: t('profile.myOrders') || 'My Orders',
             onPress: () => navigation.navigate('MyOrders'),
+        },
+        {
+            icon: Heart,
+            label: t('profile.favorites') || 'Favorites',
+            onPress: () => navigation.navigate('Favorites'),
         },
         {
             icon: Bell,
@@ -249,5 +254,4 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
 });
-
 export default ProfileScreen;

@@ -54,6 +54,7 @@ export declare class PaymentsService {
             tax: number;
             total: number;
             exchangeRate: number;
+            shippingAddress: string | null;
         };
     } & {
         id: string;
@@ -89,4 +90,25 @@ export declare class PaymentsService {
         error: any;
         status?: undefined;
     }>;
+    confirmFromClient(data: {
+        orderId: string;
+        paymentId: string;
+        status: string;
+    }): Promise<{
+        confirmed: boolean;
+        status: string;
+        message?: undefined;
+        error?: undefined;
+    } | {
+        confirmed: boolean;
+        status: string | undefined;
+        message: string;
+        error?: undefined;
+    } | {
+        confirmed: boolean;
+        error: any;
+        status?: undefined;
+        message?: undefined;
+    }>;
+    private markOrderPaid;
 }

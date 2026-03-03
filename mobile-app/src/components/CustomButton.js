@@ -10,8 +10,7 @@ const CustomButton = ({
     loading = false,
     icon,
     style,
-}) => {
-    const buttonStyles = [
+}) => {    const buttonStyles = [
         styles.button,
         variant === 'outline' && styles.outline,
         variant === 'danger' && styles.danger,
@@ -75,5 +74,4 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
     },
 });
-
 export default CustomButton;

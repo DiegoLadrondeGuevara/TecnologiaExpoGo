@@ -3,8 +3,7 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import { Search, X } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-const SearchBar = ({ value, onChangeText, placeholder = 'Search products...' }) => {
-    return (
+const SearchBar = ({ value, onChangeText, placeholder = 'Search products...' }) => {    return (
         <View style={styles.container}>
             <Search size={18} color={COLORS.textSecondary} style={styles.icon} />
             <TextInput
@@ -54,5 +53,4 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
 });
-
 export default SearchBar;
