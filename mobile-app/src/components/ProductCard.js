@@ -7,19 +7,24 @@ import {
     TouchableOpacity,
     Dimensions,
 } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Heart, Check } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { formatPrice } from 'shared-logic/currency';
 import { useLanguage } from '../context/LanguageContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useComparison } from '../context/ComparisonContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
-const ProductCard = ({ product, onPress, currency: currencyProp }) => {    const { t, currency: contextCurrency } = useLanguage();
+const ProductCard = ({ product, onPress, currency: currencyProp, showCompare = false }) => {
+    const { t, currency: contextCurrency } = useLanguage();
     const { toggleFavorite, isFavorite } = useFavorites();
+    const { toggleComparison, isInComparison, canAddMore } = useComparison();
     const activeCurrency = currencyProp || contextCurrency;
     const faved = isFavorite(product.id);
+    const compared = isInComparison(product.id);
+    const compareDisabled = !compared && !canAddMore;
 
     return (
         <TouchableOpacity
@@ -61,6 +66,36 @@ const ProductCard = ({ product, onPress, currency: currencyProp }) => {    cons
                         <Text style={styles.lowStock}>{t('home.lowStock')}</Text>
                     )}
                 </View>
+
+                {/* Compare checkbox */}
+                {showCompare && (
+                    <TouchableOpacity
+                        style={[
+                            styles.compareBtn,
+                            compared && styles.compareBtnActive,
+                            compareDisabled && styles.compareBtnDisabled,
+                        ]}
+                        onPress={(e) => {
+                            e.stopPropagation?.();
+                            if (!compareDisabled || compared) toggleComparison(product);
+                        }}
+                        activeOpacity={0.7}
+                        hitSlop={4}
+                    >
+                        {compared ? (
+                            <Check size={12} color={COLORS.white} strokeWidth={3} />
+                        ) : null}
+                        <Text
+                            style={[
+                                styles.compareBtnText,
+                                compared && styles.compareBtnTextActive,
+                                compareDisabled && styles.compareBtnTextDisabled,
+                            ]}
+                        >
+                            {t('comparison.compare') || 'Comparar'}
+                        </Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -73,7 +108,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginBottom: 16,
         overflow: 'hidden',
-        // Subtle shadow for depth
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
@@ -100,7 +134,6 @@ const styles = StyleSheet.create({
         right: 0,
         height: 40,
         backgroundColor: 'transparent',
-        // Subtle bottom shadow effect
         borderBottomWidth: 0,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -8 },
@@ -163,6 +196,37 @@ const styles = StyleSheet.create({
         color: COLORS.warning,
         fontSize: 10,
         fontWeight: '600',
+    },
+    // ─── Compare Checkbox Button ───
+    compareBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        marginTop: 8,
+        paddingVertical: 6,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        borderColor: COLORS.border,
+        backgroundColor: 'transparent',
+    },
+    compareBtnActive: {
+        backgroundColor: COLORS.black,
+        borderColor: COLORS.black,
+    },
+    compareBtnDisabled: {
+        opacity: 0.35,
+    },
+    compareBtnText: {
+        color: COLORS.textSecondary,
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    compareBtnTextActive: {
+        color: COLORS.white,
+    },
+    compareBtnTextDisabled: {
+        color: COLORS.textSecondary,
     },
 });
 export default ProductCard;

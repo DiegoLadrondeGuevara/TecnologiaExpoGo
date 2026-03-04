@@ -5,6 +5,7 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { useAuth } from './AuthContext';
 import { useNotification } from './NotificationContext';
+import { useLanguage } from './LanguageContext';
 import { registerPushToken } from '../api/pushService';
 import { navigate } from '../navigation/navigationRef';
 
@@ -21,31 +22,31 @@ Notifications.setNotificationHandler({
 });
 
 // ─────────────────────────────────────────────────────────────
-// 2. Configuración de tipos de notificación E-commerce
+// 2. Notification type config (channelId & UI type mapping)
 // ─────────────────────────────────────────────────────────────
-const NOTIFICATION_TYPES = {
+const NOTIFICATION_TYPE_CONFIG = {
     payment_success: {
-        title: '✅ ¡Pago Confirmado!',
+        titleKey: 'notification.paymentSuccess',
         type: 'success',
         channelId: 'payments',
         duration: 6000,
     },
     shipment_update: {
-        title: '📦 Tu Pedido va en Camino',
+        titleKey: 'notification.shipmentUpdate',
         type: 'info',
         channelId: 'shipping',
         duration: 5000,
     },
     flash_offer: {
-        title: '🔥 ¡Oferta Flash!',
+        titleKey: 'notification.flashOffer',
         type: 'warning',
         channelId: 'marketing',
         duration: 7000,
     },
 };
 
-const DEFAULT_NOTIFICATION = {
-    title: '🔔 TechStore',
+const DEFAULT_NOTIFICATION_CONFIG = {
+    titleKey: 'notification.defaultTitle',
     type: 'info',
     duration: 4000,
 };
@@ -55,6 +56,7 @@ const PushNotificationContext = createContext(null);
 export const PushNotificationProvider = ({ children }) => {
     const { user, isAuthenticated } = useAuth();
     const { showNotification } = useNotification();
+    const { t } = useLanguage();
     const [expoPushToken, setExpoPushToken] = useState(null);
     const notificationListener = useRef();
     const responseListener = useRef();
@@ -72,7 +74,6 @@ export const PushNotificationProvider = ({ children }) => {
             console.log('🚀 Iniciando registro de notificaciones...');
 
             // ── Paso 1: Validar dispositivo ──
-            // Permitir emulador Android con Play Store para pruebas locales
             if (!Device.isDevice && Platform.OS !== 'android') {
                 console.log('❌ Push: Se requiere dispositivo físico para iOS');
                 return;
@@ -128,7 +129,6 @@ export const PushNotificationProvider = ({ children }) => {
                     console.log('📢 Push: 3 canales de Android creados (payments, shipping, marketing)');
                 } catch (channelError) {
                     console.log('⚠️ Push: Error creando canales Android:', channelError.message);
-                    // No retornar — el token aún puede funcionar sin canales custom
                 }
             }
 
@@ -154,7 +154,6 @@ export const PushNotificationProvider = ({ children }) => {
                     console.log('🏁 Backend: Token vinculado al usuario', user.id);
                 } catch (backendError) {
                     console.log('⚠️ Backend: Error registrando token:', backendError.message);
-                    // El token se guardó localmente; se reintentará en el próximo arranque
                 }
             } catch (tokenError) {
                 console.log('🚨 Push: Error obteniendo token:', tokenError.message);
@@ -180,10 +179,13 @@ export const PushNotificationProvider = ({ children }) => {
                 console.log('📩 Notificación recibida:', title, '| tipo:', notifType || 'general');
 
                 // Seleccionar configuración según el tipo de notificación
-                const config = NOTIFICATION_TYPES[notifType] || DEFAULT_NOTIFICATION;
+                const config = NOTIFICATION_TYPE_CONFIG[notifType] || DEFAULT_NOTIFICATION_CONFIG;
+
+                // Usar t() para título traducido dinámicamente
+                const translatedTitle = t(config.titleKey) || title || 'TechStore';
 
                 showNotification({
-                    title: config.title || title || 'TechStore',
+                    title: translatedTitle,
                     message: body || '',
                     type: config.type,
                     duration: config.duration,
@@ -216,13 +218,13 @@ export const PushNotificationProvider = ({ children }) => {
 
         return () => {
             if (notificationListener.current) {
-                Notifications.removeNotificationSubscription(notificationListener.current);
+                notificationListener.current.remove();
             }
             if (responseListener.current) {
-                Notifications.removeNotificationSubscription(responseListener.current);
+                responseListener.current.remove();
             }
         };
-    }, [showNotification]);
+    }, [showNotification, t]);
 
     return (
         <PushNotificationContext.Provider value={{ expoPushToken }}>

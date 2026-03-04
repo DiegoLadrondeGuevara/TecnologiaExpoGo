@@ -15,7 +15,7 @@ const mapProduct = (p) => {
         name: lang === 'es' ? p.nameEs : p.nameEn,
         description: lang === 'es' ? p.descriptionEs : p.descriptionEn,
         price: p.price,
-        specs: p.specs || [],
+        specs: p.specs || {},
         image_url: p.imageUrl,
         stock: p.stock,
         category: p.category?.name || '',

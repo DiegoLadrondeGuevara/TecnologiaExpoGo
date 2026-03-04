@@ -10,6 +10,7 @@ import { FavoritesProvider } from './src/context/FavoritesContext';
 import { RecentlyViewedProvider } from './src/context/RecentlyViewedContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { PushNotificationProvider } from './src/context/PushNotificationContext';
+import { ComparisonProvider } from './src/context/ComparisonContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import OnboardingScreen, { hasSeenOnboarding } from './src/screens/OnboardingScreen';
 import { getColors } from './src/theme/colors';
@@ -31,19 +32,21 @@ function ThemedApp({ showOnboarding, setShowOnboarding }) {
       <AuthProvider>
         <LanguageProvider>
           <CartProvider>
-            <FavoritesProvider>
-              <RecentlyViewedProvider>
-                <NotificationProvider>
-                  <PushNotificationProvider>
-                    {showOnboarding ? (
-                      <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
-                    ) : (
-                      <AppNavigator />
-                    )}
-                  </PushNotificationProvider>
-                </NotificationProvider>
-              </RecentlyViewedProvider>
-            </FavoritesProvider>
+            <ComparisonProvider>
+              <FavoritesProvider>
+                <RecentlyViewedProvider>
+                  <NotificationProvider>
+                    <PushNotificationProvider>
+                      {showOnboarding ? (
+                        <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
+                      ) : (
+                        <AppNavigator />
+                      )}
+                    </PushNotificationProvider>
+                  </NotificationProvider>
+                </RecentlyViewedProvider>
+              </FavoritesProvider>
+            </ComparisonProvider>
           </CartProvider>
         </LanguageProvider>
       </AuthProvider>

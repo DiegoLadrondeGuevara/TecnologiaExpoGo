@@ -137,7 +137,24 @@
     },
     "notification": {
         "welcome": "¡Bienvenido de nuevo!",
-        "welcomeMessage": "Qué bueno verte"
+        "welcomeMessage": "Qué bueno verte",
+        "paymentSuccess": "✅ ¡Pago Confirmado!",
+        "shipmentUpdate": "📦 Tu Pedido va en Camino",
+        "flashOffer": "🔥 ¡Oferta Flash!",
+        "defaultTitle": "🔔 TechStore"
+    },
+    "comparison": {
+        "compare": "Comparar",
+        "title": "Comparar Productos",
+        "general": "General",
+        "price": "Precio",
+        "category": "Categoría",
+        "stock": "Stock",
+        "needTwo": "Selecciona al menos 2 productos para comparar",
+        "counter": "{{count}} de 3",
+        "yes": "Sí",
+        "no": "No",
+        "notAvailable": "N/D"
     },
     "settings": {
         "name": "Nombre Completo",

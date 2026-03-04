@@ -15,15 +15,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { Clock, SlidersHorizontal, Check, X } from 'lucide-react-native';
+import { Clock, SlidersHorizontal, Check, X, GitCompareArrows } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { getProducts, getCategories } from '../api/productService';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { useRecentlyViewed } from '../context/RecentlyViewedContext';
+import { useComparison } from '../context/ComparisonContext';
 import { formatPrice } from 'shared-logic/currency';
 import ProductCard from '../components/ProductCard';
+import ComparisonBar from '../components/ComparisonBar';
 import SearchBar from '../components/SearchBar';
 import CategorySelector from '../components/CategorySelector';
 import EmptyState from '../components/EmptyState';
@@ -41,10 +43,12 @@ const HomeScreen = ({ navigation }) => {
     const [showSortModal, setShowSortModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [compareMode, setCompareMode] = useState(false);
     const { t, currency } = useLanguage();
     const { user, justLoggedIn, setJustLoggedIn } = useAuth();
     const { showNotification } = useNotification();
     const { recentItems, clearRecentlyViewed } = useRecentlyViewed();
+    const { comparisonCount, clearComparison } = useComparison();
 
     // ─── Sort options ───
     const sortOptions = [
@@ -157,6 +161,17 @@ const HomeScreen = ({ navigation }) => {
         return t('home.greeting_evening');
     };
 
+    const handleToggleCompareMode = () => {
+        if (compareMode) {
+            clearComparison();
+        }
+        setCompareMode(!compareMode);
+    };
+
+    const handleNavigateToComparison = () => {
+        navigation.navigate('Comparison');
+    };
+
     // ─── Recently Viewed Section ───
     const renderRecentlyViewed = () => {
         if (!recentItems || recentItems.length === 0) return null;
@@ -263,7 +278,7 @@ const HomeScreen = ({ navigation }) => {
             {/* Recently Viewed */}
             {renderRecentlyViewed()}
 
-            {/* Sort Button */}
+            {/* Sort + Compare Buttons */}
             <View style={styles.sortBar}>
                 <TouchableOpacity
                     style={[
@@ -279,6 +294,25 @@ const HomeScreen = ({ navigation }) => {
                         sortBy !== 'default' && styles.sortButtonTextActive,
                     ]}>
                         {currentSortLabel}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Compare Mode Toggle */}
+                <TouchableOpacity
+                    style={[
+                        styles.sortButton,
+                        compareMode && styles.sortButtonActive,
+                    ]}
+                    onPress={handleToggleCompareMode}
+                    activeOpacity={0.7}
+                >
+                    <GitCompareArrows size={16} color={compareMode ? COLORS.white : COLORS.textPrimary} />
+                    <Text style={[
+                        styles.sortButtonText,
+                        compareMode && styles.sortButtonTextActive,
+                    ]}>
+                        {t('comparison.compare') || 'Comparar'}
+                        {compareMode && comparisonCount > 0 ? ` (${comparisonCount})` : ''}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -324,11 +358,19 @@ const HomeScreen = ({ navigation }) => {
                     keyExtractor={(item) => item.id}
                     numColumns={2}
                     columnWrapperStyle={styles.row}
-                    contentContainerStyle={styles.list}
+                    contentContainerStyle={[
+                        styles.list,
+                        compareMode && comparisonCount > 0 && { paddingBottom: 180 },
+                    ]}
                     showsVerticalScrollIndicator={false}
                     ListHeaderComponent={renderListHeader}
                     renderItem={({ item }) => (
-                        <ProductCard product={item} onPress={handleProductPress} currency={currency} />
+                        <ProductCard
+                            product={item}
+                            onPress={handleProductPress}
+                            currency={currency}
+                            showCompare={compareMode}
+                        />
                     )}
                     refreshControl={
                         <RefreshControl
@@ -342,6 +384,11 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Sort Modal */}
             {renderSortModal()}
+
+            {/* Comparison Bar */}
+            {compareMode && (
+                <ComparisonBar onCompare={handleNavigateToComparison} />
+            )}
         </SafeAreaView>
     );
 };
@@ -413,6 +460,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingBottom: 14,
         paddingTop: 4,
+        gap: 8,
     },
     sortButton: {
         flexDirection: 'row',

@@ -23,6 +23,7 @@ import SupportScreen from '../screens/SupportScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ShippingAddressScreen from '../screens/ShippingAddressScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+import ComparisonScreen from '../screens/ComparisonScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -41,6 +42,7 @@ const HomeStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
+        <Stack.Screen name="Comparison" component={ComparisonScreen} />
     </Stack.Navigator>
 );
 
