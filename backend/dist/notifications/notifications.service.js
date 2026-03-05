@@ -16,7 +16,7 @@ const axios_1 = __importDefault(require("axios"));
 let NotificationsService = NotificationsService_1 = class NotificationsService {
     logger = new common_1.Logger(NotificationsService_1.name);
     EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
-    async sendPush(expoPushToken, title, body, data) {
+    async sendPush(expoPushToken, title, body, data, channelId = 'orders') {
         if (!expoPushToken || !expoPushToken.startsWith('ExponentPushToken[')) {
             this.logger.warn(`Invalid push token: ${expoPushToken}`);
             return false;
@@ -27,7 +27,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             body,
             data: data || {},
             sound: 'default',
-            channelId: 'orders',
+            channelId,
         };
         try {
             const response = await axios_1.default.post(this.EXPO_PUSH_URL, message, {
@@ -64,10 +64,13 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         if (!msg)
             return false;
         return this.sendPush(expoPushToken, msg.title, msg.body, {
-            type: 'order_status',
+            type: 'shipment_update',
             orderId,
             status,
-        });
+        }, 'shipping');
+    }
+    async sendPaymentSuccessPush(expoPushToken, orderId) {
+        return this.sendPush(expoPushToken, '✅ ¡Pago Confirmado!', 'Tu compra ha sido procesada con éxito. Revisa tus pedidos.', { type: 'payment_success', orderId }, 'payments');
     }
 };
 exports.NotificationsService = NotificationsService;

@@ -14,15 +14,18 @@ exports.PaymentsService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 const mercadopago_1 = require("mercadopago");
 let PaymentsService = PaymentsService_1 = class PaymentsService {
     prisma;
     configService;
+    notifications;
     logger = new common_1.Logger(PaymentsService_1.name);
     mpClient;
-    constructor(prisma, configService) {
+    constructor(prisma, configService, notifications) {
         this.prisma = prisma;
         this.configService = configService;
+        this.notifications = notifications;
         const accessToken = this.configService.get('MP_ACCESS_TOKEN');
         if (!accessToken) {
             this.logger.warn('MP_ACCESS_TOKEN not configured — Mercado Pago will not work');
@@ -52,9 +55,9 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             body: {
                 items,
                 back_urls: {
-                    success: 'https://techstore.app/payment/success',
-                    failure: 'https://techstore.app/payment/failure',
-                    pending: 'https://techstore.app/payment/pending',
+                    success: 'techstore://payment/success',
+                    failure: 'techstore://payment/failure',
+                    pending: 'techstore://payment/pending',
                 },
                 auto_return: 'approved',
                 external_reference: data.orderId,
@@ -123,25 +126,7 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
                 },
             });
             if (paymentInfo.status === 'approved') {
-                await this.prisma.$transaction(async (tx) => {
-                    await tx.order.update({
-                        where: { id: orderId },
-                        data: { status: 'paid' },
-                    });
-                    const order = await tx.order.findUnique({
-                        where: { id: orderId },
-                        include: { items: true },
-                    });
-                    if (order) {
-                        for (const item of order.items) {
-                            await tx.product.update({
-                                where: { id: item.productId },
-                                data: { stock: { decrement: item.quantity } },
-                            });
-                        }
-                    }
-                    this.logger.log(`✅ Order ${orderId} marked as PAID, stock decremented`);
-                });
+                await this.markOrderPaid(orderId, String(body.data.id));
             }
             return { received: true, processed: true, status: paymentInfo.status };
         }
@@ -209,12 +194,26 @@ let PaymentsService = PaymentsService_1 = class PaymentsService {
             }
             this.logger.log(`✅ Order ${orderId} marked as PAID (via ${externalId}), stock decremented`);
         });
+        try {
+            const order = await this.prisma.order.findUnique({
+                where: { id: orderId },
+                include: { user: { select: { expoPushToken: true } } },
+            });
+            if (order?.user?.expoPushToken) {
+                await this.notifications.sendPaymentSuccessPush(order.user.expoPushToken, orderId);
+                this.logger.log(`📩 Payment push sent for order ${orderId}`);
+            }
+        }
+        catch (pushError) {
+            this.logger.warn(`Push notification failed (non-critical): ${pushError.message}`);
+        }
     }
 };
 exports.PaymentsService = PaymentsService;
 exports.PaymentsService = PaymentsService = PaymentsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        notifications_service_1.NotificationsService])
 ], PaymentsService);
 //# sourceMappingURL=payments.service.js.map

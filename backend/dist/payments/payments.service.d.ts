@@ -1,11 +1,13 @@
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class PaymentsService {
     private prisma;
     private configService;
+    private notifications;
     private readonly logger;
     private mpClient;
-    constructor(prisma: PrismaService, configService: ConfigService);
+    constructor(prisma: PrismaService, configService: ConfigService, notifications: NotificationsService);
     createPreference(userId: string, data: {
         orderId: string;
     }): Promise<{
