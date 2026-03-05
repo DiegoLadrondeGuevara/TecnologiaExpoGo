@@ -23,6 +23,7 @@ export class NotificationsService {
         title: string,
         body: string,
         data?: Record<string, unknown>,
+        channelId: string = 'orders',
     ): Promise<boolean> {
         if (!expoPushToken || !expoPushToken.startsWith('ExponentPushToken[')) {
             this.logger.warn(`Invalid push token: ${expoPushToken}`);
@@ -35,7 +36,7 @@ export class NotificationsService {
             body,
             data: data || {},
             sound: 'default',
-            channelId: 'orders',
+            channelId,
         };
 
         try {
@@ -87,9 +88,25 @@ export class NotificationsService {
         if (!msg) return false;
 
         return this.sendPush(expoPushToken, msg.title, msg.body, {
-            type: 'order_status',
+            type: 'shipment_update',
             orderId,
             status,
-        });
+        }, 'shipping');
+    }
+
+    /**
+     * Send push notification when a payment is approved.
+     */
+    async sendPaymentSuccessPush(
+        expoPushToken: string,
+        orderId: string,
+    ): Promise<boolean> {
+        return this.sendPush(
+            expoPushToken,
+            '✅ ¡Pago Confirmado!',
+            'Tu compra ha sido procesada con éxito. Revisa tus pedidos.',
+            { type: 'payment_success', orderId },
+            'payments',
+        );
     }
 }

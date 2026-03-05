@@ -17,7 +17,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
 import { createPaymentPreference, confirmPayment, cancelOrder } from '../api/paymentService';
 
-const PaymentScreen = ({ route, navigation }) => {    const { orderId } = route.params || {};
+const PaymentScreen = ({ route, navigation }) => {
+    const { orderId } = route.params || {};
     const { clearCart } = useCart();
     const { t } = useLanguage();
     const { showNotification } = useNotification();
@@ -35,7 +36,7 @@ const PaymentScreen = ({ route, navigation }) => {    const { orderId } = route
                     return;
                 }
                 const preference = await createPaymentPreference(orderId);
-                setInitPoint(preference.sandbox_init_point || preference.init_point);
+                setInitPoint(preference.init_point);
             } catch (error) {
                 console.error('Error creating payment preference:', error);
                 setPaymentResult('failure');

@@ -14,7 +14,6 @@ import { ComparisonProvider } from './src/context/ComparisonContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import OnboardingScreen, { hasSeenOnboarding } from './src/screens/OnboardingScreen';
 import { getColors } from './src/theme/colors';
-
 /**
  * Inner shell that consumes theme and forces full re-mount with key={isDark}
  * so every StyleSheet.create() re-runs with the updated COLORS values.

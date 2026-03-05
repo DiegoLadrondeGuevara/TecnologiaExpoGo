@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { MercadoPagoConfig, Preference, Payment as MPPayment } from 'mercadopago';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class PaymentsService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private notifications: NotificationsService,
     ) {
         const accessToken = this.configService.get<string>('MP_ACCESS_TOKEN');
         if (!accessToken) {
@@ -49,9 +51,9 @@ export class PaymentsService {
             body: {
                 items,
                 back_urls: {
-                    success: 'https://techstore.app/payment/success',
-                    failure: 'https://techstore.app/payment/failure',
-                    pending: 'https://techstore.app/payment/pending',
+                    success: 'techstore://payment/success',
+                    failure: 'techstore://payment/failure',
+                    pending: 'techstore://payment/pending',
                 },
                 auto_return: 'approved',
                 external_reference: data.orderId,
@@ -145,32 +147,9 @@ export class PaymentsService {
                 },
             });
 
-            // If approved: update order status + decrement stock
+            // If approved: update order status + decrement stock + send push
             if (paymentInfo.status === 'approved') {
-                await this.prisma.$transaction(async (tx) => {
-                    // Mark order as paid
-                    await tx.order.update({
-                        where: { id: orderId },
-                        data: { status: 'paid' },
-                    });
-
-                    // Decrement stock for each item
-                    const order = await tx.order.findUnique({
-                        where: { id: orderId },
-                        include: { items: true },
-                    });
-
-                    if (order) {
-                        for (const item of order.items) {
-                            await tx.product.update({
-                                where: { id: item.productId },
-                                data: { stock: { decrement: item.quantity } },
-                            });
-                        }
-                    }
-
-                    this.logger.log(`✅ Order ${orderId} marked as PAID, stock decremented`);
-                });
+                await this.markOrderPaid(orderId, String(body.data.id));
             }
 
             return { received: true, processed: true, status: paymentInfo.status };
@@ -238,7 +217,7 @@ export class PaymentsService {
     }
 
     /**
-     * Shared logic: mark order as paid + decrement stock
+     * Shared logic: mark order as paid + decrement stock + send push notification
      */
     private async markOrderPaid(orderId: string, externalId: string) {
         await this.prisma.$transaction(async (tx) => {
@@ -273,6 +252,24 @@ export class PaymentsService {
                 `✅ Order ${orderId} marked as PAID (via ${externalId}), stock decremented`,
             );
         });
+
+        // Send push notification OUTSIDE the transaction (non-blocking)
+        try {
+            const order = await this.prisma.order.findUnique({
+                where: { id: orderId },
+                include: { user: { select: { expoPushToken: true } } },
+            });
+
+            if (order?.user?.expoPushToken) {
+                await this.notifications.sendPaymentSuccessPush(
+                    order.user.expoPushToken,
+                    orderId,
+                );
+                this.logger.log(`📩 Payment push sent for order ${orderId}`);
+            }
+        } catch (pushError) {
+            // Push failure should NEVER break the payment flow
+            this.logger.warn(`Push notification failed (non-critical): ${pushError.message}`);
+        }
     }
 }
-
