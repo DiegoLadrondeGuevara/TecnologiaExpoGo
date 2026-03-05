@@ -23,7 +23,7 @@ const getBaseUrl = () => {
     }
 
     // 3. Fallback: localhost (para desarrollo local)
-    return 'http://localhost:3001/api';
+    return 'http://localhost:1545/api';
 };
 
 const apiClient = axios.create({
