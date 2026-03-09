@@ -7,7 +7,8 @@ import { login, loginWithGoogle } from '../services/authService';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export default function LoginPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isEs = i18n.language === 'es';
     const navigate = useNavigate();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -64,13 +65,13 @@ export default function LoginPage() {
         try {
             const { user } = await loginWithGoogle(response.credential);
             if (user.role !== 'ADMIN') {
-                setError('Access denied. Admin credentials required.');
+                setError(isEs ? 'Acceso denegado. Se requieren credenciales de admin.' : 'Access denied. Admin credentials required.');
                 setGoogleLoading(false);
                 return;
             }
             navigate('/');
         } catch (err) {
-            setError(err.message || 'Google login failed');
+            setError(err.message || (isEs ? 'Fallo el inicio de sesión con Google' : 'Google login failed'));
         } finally {
             setGoogleLoading(false);
         }
@@ -83,13 +84,13 @@ export default function LoginPage() {
         try {
             const { user } = await login(identifier, password);
             if (user.role !== 'ADMIN') {
-                setError('Access denied. Admin credentials required.');
+                setError(isEs ? 'Acceso denegado. Se requieren credenciales de admin.' : 'Access denied. Admin credentials required.');
                 setLoading(false);
                 return;
             }
             navigate('/');
         } catch (err) {
-            setError(err.message || 'Invalid credentials');
+            setError(err.message || (isEs ? 'Credenciales inválidas' : 'Invalid credentials'));
         } finally {
             setLoading(false);
         }
@@ -97,42 +98,8 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ backgroundColor: '#06060a' }}>
-            {/* Animated background orbs */}
+            {/* Subtle grid background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div
-                    className="absolute rounded-full blur-[120px]"
-                    style={{
-                        top: '15%',
-                        left: '20%',
-                        width: '500px',
-                        height: '500px',
-                        background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)',
-                        animation: 'float 8s ease-in-out infinite',
-                    }}
-                />
-                <div
-                    className="absolute rounded-full blur-[120px]"
-                    style={{
-                        bottom: '10%',
-                        right: '15%',
-                        width: '400px',
-                        height: '400px',
-                        background: 'radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)',
-                        animation: 'float 10s ease-in-out infinite reverse',
-                    }}
-                />
-                <div
-                    className="absolute rounded-full blur-[100px]"
-                    style={{
-                        top: '50%',
-                        left: '60%',
-                        width: '350px',
-                        height: '350px',
-                        background: 'radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)',
-                        animation: 'float 12s ease-in-out infinite 2s',
-                    }}
-                />
-                {/* Grid overlay */}
                 <div
                     className="absolute inset-0"
                     style={{
@@ -160,7 +127,6 @@ export default function LoginPage() {
                         style={{
                             background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
                             boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
-                            animation: 'glowPulse 4s ease-in-out infinite',
                         }}
                     >
                         <LogIn size={28} className="text-white" />
@@ -218,13 +184,13 @@ export default function LoginPage() {
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
-                            Email or Username
+                            {isEs ? 'Email o Usuario' : 'Email or Username'}
                         </label>
                         <input
                             type="text"
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
-                            placeholder="Email or username"
+                            placeholder={isEs ? 'Email o usuario' : 'Email or username'}
                             required
                             className="glass-input w-full rounded-xl py-3.5 px-4 text-white font-medium text-sm"
                         />
@@ -232,7 +198,7 @@ export default function LoginPage() {
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
-                            Password
+                            {isEs ? 'Contraseña' : 'Password'}
                         </label>
                         <div className="relative">
                             <input
@@ -266,7 +232,7 @@ export default function LoginPage() {
                         ) : (
                             <LogIn size={18} />
                         )}
-                        {loading ? 'Authenticating...' : 'Sign In'}
+                        {loading ? (isEs ? 'Autenticando...' : 'Authenticating...') : (isEs ? 'Iniciar Sesión' : 'Sign In')}
                     </button>
 
                     <p className="text-center text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>

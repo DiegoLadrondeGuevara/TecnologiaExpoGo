@@ -11,6 +11,7 @@ export default function DashboardPage() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
+    const isEs = i18n.language === 'es';
 
     useEffect(() => {
         fetchDashboardStats().then(data => { setStats(data); setLoading(false); });
@@ -39,23 +40,23 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
             <div>
                 <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                     {t('admin.dashboard')}
                 </h2>
-                <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                    {t('admin.welcome_message', { defaultValue: 'Aquí tienes un resumen de tu tienda hoy.' })}
+                <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                    {isEs ? 'Aquí tienes un resumen de tu tienda hoy.' : 'Here is a summary of your store today.'}
                 </p>
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((card, i) => (
                     <div
                         key={i}
-                        className="glass-card p-6 relative overflow-hidden"
+                        className="glass-card p-7 relative overflow-hidden"
                         style={{ cursor: 'default' }}
                     >
                         <div className="flex items-start justify-between relative z-10">
@@ -109,7 +110,7 @@ export default function DashboardPage() {
             {/* Recent Transactions Table */}
             <div className="glass-card overflow-hidden">
                 {/* Table header */}
-                <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <div className="px-7 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
                             <ShoppingCart size={18} style={{ color: '#818cf8' }} />

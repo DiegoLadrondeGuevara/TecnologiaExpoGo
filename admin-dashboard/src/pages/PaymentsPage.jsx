@@ -49,7 +49,7 @@ export default function PaymentsPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
@@ -76,7 +76,7 @@ export default function PaymentsPage() {
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className="px-5 py-2 rounded-lg text-xs font-bold"
+                            className="px-6 py-2 rounded-lg text-xs font-bold"
                             style={{
                                 background: filter === f ? 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-tertiary))' : 'transparent',
                                 color: filter === f ? '#fff' : 'var(--color-text-muted)',
@@ -90,13 +90,13 @@ export default function PaymentsPage() {
                 </div>
 
                 <div className="relative group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)' }} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)' }} />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder={t('admin.search_order', { defaultValue: 'Buscar pedido...' })}
-                        className="glass-input rounded-xl py-2 pl-10 pr-4 text-sm text-white w-64"
+                        placeholder={isEs ? 'Buscar por pedido, cliente...' : 'Search by order, customer...'}
+                        className="glass-input rounded-xl py-2.5 pl-12 pr-4 text-sm text-white w-80"
                     />
                 </div>
             </div>

@@ -49,7 +49,11 @@ export default function SalesPage() {
         .filter((o) => {
             if (!searchTerm) return true;
             const s = searchTerm.toLowerCase();
-            return o.id.toLowerCase().includes(s) || o.userName.toLowerCase().includes(s);
+            return (
+                o.id.toLowerCase().includes(s) ||
+                o.userName.toLowerCase().includes(s) ||
+                o.items.some(item => item.productName.toLowerCase().includes(s))
+            );
         });
 
     const totalRevenue = orders.filter((o) => o.status === 'paid').reduce((sum, o) => sum + o.total, 0);
@@ -74,9 +78,9 @@ export default function SalesPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
-            <div className="animate-fade-in-up">
+            <div>
                 <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                     {i18n.language === 'es' ? 'Ventas' : 'Sales'}
                 </h2>
@@ -86,11 +90,11 @@ export default function SalesPage() {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {kpis.map(({ icon: Icon, label, value, gradient, glow }, idx) => (
                     <div
                         key={idx}
-                        className={`glass-card glass-card-hover hover-lift p-5 flex items-center gap-4 relative overflow-hidden animate-fade-in-up stagger-${idx + 1}`}
+                        className="glass-card p-6 flex items-center gap-4 relative overflow-hidden"
                     >
                         <div className="p-3 rounded-xl" style={{ background: gradient, boxShadow: `0 4px 16px ${glow}` }}>
                             <Icon size={22} color="#fff" />
@@ -105,7 +109,7 @@ export default function SalesPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-in-up stagger-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex p-1 rounded-xl" style={{ background: 'rgba(20,20,28,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
                     {['all', 'paid', 'pending'].map((f) => (
                         <button
@@ -125,19 +129,19 @@ export default function SalesPage() {
                 </div>
 
                 <div className="relative group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s ease' }} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)' }} />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder={i18n.language === 'es' ? 'Buscar pedido o cliente...' : 'Search order or customer...'}
-                        className="glass-input rounded-xl py-2 pl-10 pr-4 text-sm text-white w-64"
+                        placeholder={i18n.language === 'es' ? 'Buscar por pedido, cliente o producto...' : 'Search by order, customer or product...'}
+                        className="glass-input rounded-xl py-2.5 pl-12 pr-4 text-sm text-white w-96"
                     />
                 </div>
             </div>
 
             {/* Orders Table */}
-            <div className="glass-card overflow-hidden animate-fade-in-up stagger-6">
+            <div className="glass-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>

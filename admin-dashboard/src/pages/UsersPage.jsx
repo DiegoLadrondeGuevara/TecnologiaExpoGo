@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import {
     Mail, Calendar, ShoppingBag, DollarSign, Search,
     ArrowUpRight, X, Package, Clock,
-    CheckCircle, Truck, PackageCheck, XCircle
+    CheckCircle, Truck, PackageCheck, XCircle,
+    Trash2, Edit3, Save, Loader2
 } from 'lucide-react';
-import { fetchUsers, fetchOrders } from '../services/api';
+import { fetchUsers, fetchOrders, deleteUser, updateUser } from '../services/api';
 import { formatPrice } from '../../../shared-logic/currency';
 
 export default function UsersPage() {
@@ -20,6 +21,12 @@ export default function UsersPage() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [userOrders, setUserOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(false);
+
+    // Edit modal state
+    const [editingUser, setEditingUser] = useState(null);
+    const [editForm, setEditForm] = useState({ name: '', email: '', address: '' });
+    const [editSaving, setEditSaving] = useState(false);
+    const [deleting, setDeleting] = useState(null);
 
     useEffect(() => {
         fetchUsers().then(data => { setUsers(data); setLoading(false); });
@@ -49,6 +56,41 @@ export default function UsersPage() {
         setUserOrders([]);
     };
 
+    const openEdit = (user) => {
+        setEditingUser(user);
+        setEditForm({ name: user.name, email: user.email, address: user.address || '' });
+    };
+
+    const handleEditSave = async () => {
+        if (!editingUser) return;
+        setEditSaving(true);
+        try {
+            await updateUser(editingUser.id, editForm);
+            setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...editForm } : u));
+            setEditingUser(null);
+        } catch (err) {
+            alert(err.message || 'Error');
+        } finally {
+            setEditSaving(false);
+        }
+    };
+
+    const handleDelete = async (user) => {
+        const msg = isEs
+            ? `¿Eliminar a "${user.name}" y todo su historial? Esta acción no se puede deshacer.`
+            : `Delete "${user.name}" and all their history? This action cannot be undone.`;
+        if (!window.confirm(msg)) return;
+        setDeleting(user.id);
+        try {
+            await deleteUser(user.id);
+            setUsers(prev => prev.filter(u => u.id !== user.id));
+        } catch (err) {
+            alert(err.message || 'Error');
+        } finally {
+            setDeleting(null);
+        }
+    };
+
     const orderStatusConfig = {
         pending: { label: isEs ? 'Pendiente' : 'Pending', icon: Clock, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
         paid: { label: isEs ? 'Pagado' : 'Paid', icon: CheckCircle, color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
@@ -67,7 +109,7 @@ export default function UsersPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header + Search */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                 <div>
@@ -80,7 +122,7 @@ export default function UsersPage() {
                             {users.length} Total
                         </span>
                     </h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>
                         {isEs ? 'Monitorea la actividad y el gasto de tus clientes.' : 'Monitor your customers\' activity and spending.'}
                     </p>
                 </div>
@@ -98,9 +140,9 @@ export default function UsersPage() {
             </div>
 
             {/* Users Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredUsers.map((user) => (
-                    <div key={user.id} className="glass-card p-6 relative overflow-hidden card-hover">
+                    <div key={user.id} className="glass-card p-7 relative overflow-hidden card-hover">
                         <div className="flex items-start justify-between mb-6">
                             <div className="flex items-center gap-4">
                                 <div className="relative">
@@ -124,25 +166,53 @@ export default function UsersPage() {
                                     </div>
                                 </div>
                             </div>
+                            {/* Edit / Delete buttons (only for non-admin) */}
+                            {user.role !== 'ADMIN' && (
+                                <div className="flex gap-1.5">
+                                    <button
+                                        onClick={() => openEdit(user)}
+                                        className="p-2 rounded-lg"
+                                        style={{ background: 'rgba(99,102,241,0.08)', color: '#818cf8', transition: 'all 0.2s ease' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#6366f1'; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; e.currentTarget.style.color = '#818cf8'; }}
+                                        title={isEs ? 'Editar' : 'Edit'}
+                                    >
+                                        <Edit3 size={14} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(user)}
+                                        disabled={deleting === user.id}
+                                        className="p-2 rounded-lg"
+                                        style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', transition: 'all 0.2s ease' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#f87171'; }}
+                                        title={isEs ? 'Eliminar' : 'Delete'}
+                                    >
+                                        {deleting === user.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-3">
-                            {[
-                                { icon: ShoppingBag, value: user.orders, label: isEs ? 'Pedidos' : 'Orders', color: '#818cf8' },
-                                { icon: DollarSign, value: formatPrice(user.totalSpent, currency).split('.')[0], label: isEs ? 'Gastado' : 'Spent', color: '#10b981' },
-                                { icon: Calendar, value: new Date(user.registeredAt).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }), label: isEs ? 'Fecha' : 'Date', color: '#f59e0b' },
-                            ].map(({ icon: Icon, value, label, color }, idx) => (
-                                <div
-                                    key={idx}
-                                    className="rounded-xl p-3 flex flex-col items-center justify-center text-center"
-                                    style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}
-                                >
-                                    <Icon size={16} style={{ color, marginBottom: '6px' }} />
-                                    <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
-                                </div>
-                            ))}
+                        <div className="grid grid-cols-3 gap-4">
+                            {
+                                [
+                                    { icon: ShoppingBag, value: user.orders, label: isEs ? 'Pedidos' : 'Orders', color: '#818cf8' },
+                                    { icon: DollarSign, value: formatPrice(user.totalSpent, currency).split('.')[0], label: isEs ? 'Gastado' : 'Spent', color: '#10b981' },
+                                    { icon: Calendar, value: new Date(user.registeredAt).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }), label: isEs ? 'Fecha' : 'Date', color: '#f59e0b' },
+                                ].map(({ icon: Icon, value, label, color }, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="rounded-xl p-3 flex flex-col items-center justify-center text-center"
+                                        style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}
+                                    >
+                                        <Icon size={16} style={{ color, marginBottom: '6px' }} />
+                                        <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
+                                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                                    </div>
+                                ))
+                            }
                         </div>
 
                         {/* View Details Button */}
@@ -171,183 +241,266 @@ export default function UsersPage() {
                             style={{ background: 'linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary))', opacity: 0, transition: 'opacity 0.2s ease' }}
                         />
                     </div>
-                ))}
-            </div>
+                ))
+                }
+            </div >
 
             {/* Empty State */}
-            {filteredUsers.length === 0 && (
-                <div className="py-20 text-center">
-                    <p className="font-semibold italic" style={{ color: 'var(--color-text-muted)' }}>
-                        {isEs
-                            ? `No se encontraron usuarios que coincidan con "${searchTerm}"`
-                            : `No users found matching "${searchTerm}"`}
-                    </p>
-                </div>
-            )}
+            {
+                filteredUsers.length === 0 && (
+                    <div className="py-20 text-center">
+                        <p className="font-semibold italic" style={{ color: 'var(--color-text-muted)' }}>
+                            {isEs
+                                ? `No se encontraron usuarios que coincidan con "${searchTerm}"`
+                                : `No users found matching "${searchTerm}"`}
+                        </p>
+                    </div>
+                )
+            }
 
             {/* ═══ USER DETAIL MODAL ═══ */}
-            {selectedUser && (
+            {
+                selectedUser && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <div
+                            className="absolute inset-0"
+                            style={{ background: 'rgba(0,0,0,0.7)' }}
+                            onClick={closeModal}
+                        />
+
+                        <div
+                            className="relative w-full max-w-4xl glass-card overflow-hidden"
+                            style={{
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+                                maxHeight: '90vh',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                <div className="flex items-center gap-4">
+                                    <div
+                                        className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold text-white"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))' }}
+                                    >
+                                        {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                            {selectedUser.name}
+                                        </h3>
+                                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                                            <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                                                <Mail size={11} /> {selectedUser.email}
+                                            </span>
+                                            <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                                                <Calendar size={11} /> {isEs ? 'Miembro desde' : 'Member since'} {new Date(selectedUser.registeredAt).toLocaleDateString(isEs ? 'es' : 'en', { month: 'long', year: 'numeric' })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={closeModal}
+                                    className="p-2 rounded-lg cursor-pointer"
+                                    style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+                                >
+                                    <X size={22} />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-9 overflow-y-auto flex-1">
+                                {loadingOrders ? (
+                                    <div className="flex flex-col items-center justify-center py-16 gap-4">
+                                        <div className="modern-spinner" />
+                                        <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                                            {isEs ? 'Cargando historial...' : 'Loading history...'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Summary Stats */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                            {[
+                                                { icon: ShoppingBag, label: isEs ? 'Total Pedidos' : 'Total Orders', value: userOrders.length, color: '#818cf8', bg: 'rgba(99,102,241,0.08)' },
+                                                { icon: DollarSign, label: isEs ? 'Dinero Gastado' : 'Money Spent', value: formatPrice(userOrders.reduce((sum, o) => sum + o.total, 0), currency), color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+                                                { icon: CheckCircle, label: isEs ? 'Pagados' : 'Paid', value: userOrders.filter(o => ['paid', 'shipped', 'delivered'].includes(o.status)).length, color: '#06b6d4', bg: 'rgba(6,182,212,0.08)' },
+                                                { icon: Truck, label: isEs ? 'En Envío' : 'Shipping', value: userOrders.filter(o => o.status === 'shipped').length, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+                                            ].map(({ icon: Icon, label, value, color, bg }, idx) => (
+                                                <div key={idx} className="rounded-xl p-4 flex items-center gap-3" style={{ background: bg, border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <div className="p-2.5 rounded-lg" style={{ background: `${color}20` }}>
+                                                        <Icon size={18} style={{ color }} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Order History */}
+                                        <div>
+                                            <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+                                                <Package size={16} style={{ color: '#818cf8' }} />
+                                                {isEs ? 'Historial de Pedidos' : 'Order History'}
+                                            </h4>
+
+                                            {userOrders.length === 0 ? (
+                                                <div className="py-12 text-center rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <ShoppingBag size={40} className="mx-auto mb-3" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }} />
+                                                    <p className="text-sm font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                                                        {isEs ? 'Este cliente aún no tiene pedidos' : 'This customer has no orders yet'}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                    <table className="w-full border-collapse">
+                                                        <thead>
+                                                            <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                                                {[
+                                                                    isEs ? 'Pedido' : 'Order',
+                                                                    'Items',
+                                                                    'Total',
+                                                                    isEs ? 'Estado' : 'Status',
+                                                                    isEs ? 'Fecha' : 'Date',
+                                                                ].map((h, i) => (
+                                                                    <th key={i} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {userOrders.map((order) => {
+                                                                const sc = orderStatusConfig[order.status] || orderStatusConfig.pending;
+                                                                return (
+                                                                    <tr key={order.id} className="table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                                                                        <td className="px-5 py-3">
+                                                                            <span className="font-mono text-sm font-bold" style={{ color: '#818cf8' }}>#{order.id.slice(0, 8)}</span>
+                                                                        </td>
+                                                                        <td className="px-5 py-3">
+                                                                            <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg w-fit" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                                                                <Package size={12} style={{ color: '#818cf8', opacity: 0.7 }} />
+                                                                                <span className="text-[11px] font-medium truncate max-w-[200px]" style={{ color: 'var(--color-text-muted)' }}>
+                                                                                    {order.items.map(i => `${i.productName} x${i.quantity}`).join(', ')}
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-5 py-3">
+                                                                            <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(order.total, currency)}</span>
+                                                                        </td>
+                                                                        <td className="px-5 py-3">
+                                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider" style={{ background: sc.bg, color: sc.color }}>
+                                                                                <sc.icon size={11} />
+                                                                                {sc.label}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-5 py-3">
+                                                                            <div className="flex flex-col">
+                                                                                <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                                                                                    {new Date(order.createdAt).toLocaleDateString(isEs ? 'es' : 'en', { day: '2-digit', month: 'short' })}
+                                                                                </span>
+                                                                                <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                                                                                    {new Date(order.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* ═══ EDIT USER MODAL ═══ */}
+            {editingUser && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div
                         className="absolute inset-0"
-                        style={{ background: 'rgba(0,0,0,0.7)' }}
-                        onClick={closeModal}
+                        style={{ background: 'rgba(0,0,0,0.75)' }}
+                        onClick={() => setEditingUser(null)}
                     />
-
                     <div
-                        className="relative w-full max-w-4xl glass-card overflow-hidden"
-                        style={{
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
-                            maxHeight: '90vh',
-                            display: 'flex',
-                            flexDirection: 'column',
-                        }}
+                        className="relative w-full max-w-md glass-card overflow-hidden"
+                        style={{ border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 32px 64px rgba(0,0,0,0.5)' }}
                     >
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                            <div className="flex items-center gap-4">
-                                <div
-                                    className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold text-white"
-                                    style={{ background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))' }}
-                                >
-                                    {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-7 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl" style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}>
+                                    <Edit3 size={16} className="text-white" />
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                        {selectedUser.name}
-                                    </h3>
-                                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                        <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
-                                            <Mail size={11} /> {selectedUser.email}
-                                        </span>
-                                        <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
-                                            <Calendar size={11} /> {isEs ? 'Miembro desde' : 'Member since'} {new Date(selectedUser.registeredAt).toLocaleDateString(isEs ? 'es' : 'en', { month: 'long', year: 'numeric' })}
-                                        </span>
-                                    </div>
-                                </div>
+                                <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                    {isEs ? 'Editar Cliente' : 'Edit Customer'}
+                                </h3>
                             </div>
-                            <button
-                                onClick={closeModal}
-                                className="p-2 rounded-lg cursor-pointer"
-                                style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
-                            >
-                                <X size={22} />
+                            <button onClick={() => setEditingUser(null)} className="p-2 rounded-lg" style={{ color: 'var(--color-text-muted)' }}>
+                                <X size={18} />
                             </button>
                         </div>
 
-                        {/* Modal Body */}
-                        <div className="p-8 overflow-y-auto flex-1">
-                            {loadingOrders ? (
-                                <div className="flex flex-col items-center justify-center py-16 gap-4">
-                                    <div className="modern-spinner" />
-                                    <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                                        {isEs ? 'Cargando historial...' : 'Loading history...'}
-                                    </p>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* Summary Stats */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                                        {[
-                                            { icon: ShoppingBag, label: isEs ? 'Total Pedidos' : 'Total Orders', value: userOrders.length, color: '#818cf8', bg: 'rgba(99,102,241,0.08)' },
-                                            { icon: DollarSign, label: isEs ? 'Dinero Gastado' : 'Money Spent', value: formatPrice(userOrders.reduce((sum, o) => sum + o.total, 0), currency), color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
-                                            { icon: CheckCircle, label: isEs ? 'Pagados' : 'Paid', value: userOrders.filter(o => ['paid', 'shipped', 'delivered'].includes(o.status)).length, color: '#06b6d4', bg: 'rgba(6,182,212,0.08)' },
-                                            { icon: Truck, label: isEs ? 'En Envío' : 'Shipping', value: userOrders.filter(o => o.status === 'shipped').length, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-                                        ].map(({ icon: Icon, label, value, color, bg }, idx) => (
-                                            <div key={idx} className="rounded-xl p-4 flex items-center gap-3" style={{ background: bg, border: '1px solid rgba(255,255,255,0.04)' }}>
-                                                <div className="p-2.5 rounded-lg" style={{ background: `${color}20` }}>
-                                                    <Icon size={18} style={{ color }} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                        {/* Form */}
+                        <div className="p-7 space-y-5">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
+                                    {isEs ? 'Nombre' : 'Name'}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                                    className="glass-input w-full rounded-xl py-3 px-4 text-white text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={(e) => setEditForm(f => ({ ...f, email: e.target.value }))}
+                                    className="glass-input w-full rounded-xl py-3 px-4 text-white text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>
+                                    {isEs ? 'Dirección' : 'Address'}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={editForm.address}
+                                    onChange={(e) => setEditForm(f => ({ ...f, address: e.target.value }))}
+                                    placeholder={isEs ? 'Dirección de envío...' : 'Shipping address...'}
+                                    className="glass-input w-full rounded-xl py-3 px-4 text-white text-sm"
+                                />
+                            </div>
 
-                                    {/* Order History */}
-                                    <div>
-                                        <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
-                                            <Package size={16} style={{ color: '#818cf8' }} />
-                                            {isEs ? 'Historial de Pedidos' : 'Order History'}
-                                        </h4>
-
-                                        {userOrders.length === 0 ? (
-                                            <div className="py-12 text-center rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                                                <ShoppingBag size={40} className="mx-auto mb-3" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }} />
-                                                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-muted)' }}>
-                                                    {isEs ? 'Este cliente aún no tiene pedidos' : 'This customer has no orders yet'}
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.04)' }}>
-                                                <table className="w-full border-collapse">
-                                                    <thead>
-                                                        <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                                            {[
-                                                                isEs ? 'Pedido' : 'Order',
-                                                                'Items',
-                                                                'Total',
-                                                                isEs ? 'Estado' : 'Status',
-                                                                isEs ? 'Fecha' : 'Date',
-                                                            ].map((h, i) => (
-                                                                <th key={i} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</th>
-                                                            ))}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {userOrders.map((order) => {
-                                                            const sc = orderStatusConfig[order.status] || orderStatusConfig.pending;
-                                                            return (
-                                                                <tr key={order.id} className="table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
-                                                                    <td className="px-5 py-3">
-                                                                        <span className="font-mono text-sm font-bold" style={{ color: '#818cf8' }}>#{order.id.slice(0, 8)}</span>
-                                                                    </td>
-                                                                    <td className="px-5 py-3">
-                                                                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg w-fit" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                                                            <Package size={12} style={{ color: '#818cf8', opacity: 0.7 }} />
-                                                                            <span className="text-[11px] font-medium truncate max-w-[200px]" style={{ color: 'var(--color-text-muted)' }}>
-                                                                                {order.items.map(i => `${i.productName} x${i.quantity}`).join(', ')}
-                                                                            </span>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-5 py-3">
-                                                                        <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(order.total, currency)}</span>
-                                                                    </td>
-                                                                    <td className="px-5 py-3">
-                                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider" style={{ background: sc.bg, color: sc.color }}>
-                                                                            <sc.icon size={11} />
-                                                                            {sc.label}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-5 py-3">
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                                                                                {new Date(order.createdAt).toLocaleDateString(isEs ? 'es' : 'en', { day: '2-digit', month: 'short' })}
-                                                                            </span>
-                                                                            <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                                                                                {new Date(order.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                                                                            </span>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
+                            <button
+                                onClick={handleEditSave}
+                                disabled={editSaving || !editForm.name.trim() || !editForm.email.trim()}
+                                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}
+                            >
+                                {editSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                {editSaving ? (isEs ? 'Guardando...' : 'Saving...') : (isEs ? 'Guardar Cambios' : 'Save Changes')}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     );
 }

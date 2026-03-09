@@ -307,7 +307,7 @@ export default function DashboardLayout() {
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto" style={{ backgroundColor: 'transparent' }}>
-                    <div className="p-8 max-w-7xl mx-auto">
+                    <div className="px-10 py-8 max-w-7xl mx-auto">
                         <Outlet />
                     </div>
                 </main>

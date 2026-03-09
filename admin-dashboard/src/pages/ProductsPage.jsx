@@ -87,7 +87,7 @@ export default function ProductsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -108,18 +108,18 @@ export default function ProductsPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr style={{ background: 'rgba(255,255,255,0.01)' }}>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}></th>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.productName')}</th>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.price')}</th>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.stock')}</th>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.category')}</th>
-                                <th className="px-6 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-right" style={{ color: 'var(--color-text-muted)' }}>{t('admin.actions')}</th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}></th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.productName')}</th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.price')}</th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.stock')}</th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)' }}>{t('admin.category')}</th>
+                                <th className="px-7 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-right" style={{ color: 'var(--color-text-muted)' }}>{t('admin.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {products.map((p) => (
                                 <tr key={p.id} className="group table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
-                                    <td className="px-6 py-4 w-20">
+                                    <td className="px-7 py-4 w-20">
                                         <img
                                             src={p.image_url}
                                             alt=""
@@ -127,16 +127,16 @@ export default function ProductsPage() {
                                             style={{ border: '1px solid rgba(255,255,255,0.06)' }}
                                         />
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-7 py-4">
                                         <div className="space-y-1">
                                             <p className="font-bold" style={{ color: 'var(--color-text-primary)', transition: 'color 0.2s ease' }}>{i18n.language === 'es' ? p.name_es : p.name_en}</p>
                                             <p className="text-xs font-medium line-clamp-1 max-w-xs" style={{ color: 'var(--color-text-muted)' }}>{i18n.language === 'es' ? p.description_es : p.description_en}</p>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-7 py-4">
                                         <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(p.price, currency)}</span>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-7 py-4">
                                         <div
                                             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                                             style={{
@@ -151,7 +151,7 @@ export default function ProductsPage() {
                                             {p.stock} {isEs ? 'Uds' : 'Units'}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-7 py-4">
                                         <span
                                             className="px-3 py-1 rounded-lg text-[11px] font-semibold"
                                             style={{
@@ -163,7 +163,7 @@ export default function ProductsPage() {
                                             {p.category}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-7 py-4">
                                         <div className="flex gap-2 justify-end">
                                             <button
                                                 onClick={() => openEdit(p)}
@@ -204,13 +204,13 @@ export default function ProductsPage() {
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div
-                        className="absolute inset-0 animate-fade-in"
-                        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+                        className="absolute inset-0"
+                        style={{ background: 'rgba(0,0,0,0.75)' }}
                         onClick={() => setShowModal(false)}
                     />
 
                     <div
-                        className="relative w-full max-w-3xl glass-card overflow-hidden animate-scale-in"
+                        className="relative w-full max-w-3xl glass-card overflow-hidden"
                         style={{
                             border: '1px solid rgba(255,255,255,0.08)',
                             boxShadow: '0 32px 64px rgba(0,0,0,0.5)',

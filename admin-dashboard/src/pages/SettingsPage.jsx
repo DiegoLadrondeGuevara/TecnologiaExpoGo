@@ -4,7 +4,8 @@ import { Settings, Phone, Save, Loader2, CheckCircle, AlertCircle } from 'lucide
 import api from '../services/api';
 
 export default function SettingsPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isEs = i18n.language === 'es';
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -42,19 +43,19 @@ export default function SettingsPage() {
     const errorMsg = message.startsWith('error:') ? message.slice(6) : '';
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
-            <div className="animate-fade-in-up">
+            <div>
                 <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                     {t('settings', 'Settings')}
                 </h2>
-                <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                    Manage store configuration and support settings.
+                <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                    {isEs ? 'Gestiona la configuración de la tienda y soporte.' : 'Manage store configuration and support settings.'}
                 </p>
             </div>
 
             {/* Support Phone Card */}
-            <div className="glass-card glass-card-hover p-8 max-w-xl animate-fade-in-up stagger-2 relative overflow-hidden">
+            <div className="glass-card p-8 max-w-xl relative overflow-hidden">
                 {/* Top gradient line */}
                 <div
                     className="absolute top-0 left-0 right-0 h-[2px]"
@@ -72,9 +73,9 @@ export default function SettingsPage() {
                         <Phone size={20} color="#fff" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>WhatsApp Support</h3>
+                        <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{isEs ? 'Soporte WhatsApp' : 'WhatsApp Support'}</h3>
                         <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                            Configure the phone number for WhatsApp support.
+                            {isEs ? 'Configura el número de teléfono para soporte por WhatsApp.' : 'Configure the phone number for WhatsApp support.'}
                         </p>
                     </div>
                 </div>
@@ -86,10 +87,10 @@ export default function SettingsPage() {
                             className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1"
                             style={{ color: 'var(--color-text-muted)' }}
                         >
-                            Support Phone Number
+                            {isEs ? 'Número de Soporte' : 'Support Phone Number'}
                         </label>
                         <p className="text-xs mb-3 ml-1" style={{ color: 'var(--color-text-muted)' }}>
-                            Include country code without '+' (e.g. 51987654321).
+                            {isEs ? 'Incluye código de país sin "+" (ej. 51987654321).' : 'Include country code without "+" (e.g. 51987654321).'}
                         </p>
                         <input
                             id="support-phone"
@@ -113,7 +114,7 @@ export default function SettingsPage() {
                             }}
                         >
                             {isSuccess ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                            {isSuccess ? 'Support phone saved successfully' : `Error: ${errorMsg}`}
+                            {isSuccess ? (isEs ? 'Teléfono de soporte guardado correctamente' : 'Support phone saved successfully') : `Error: ${errorMsg}`}
                         </div>
                     )}
 
@@ -123,7 +124,7 @@ export default function SettingsPage() {
                         className="btn-gradient flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? (isEs ? 'Guardando...' : 'Saving...') : (isEs ? 'Guardar Cambios' : 'Save Changes')}
                     </button>
                 </div>
             </div>

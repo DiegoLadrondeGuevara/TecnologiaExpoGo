@@ -107,6 +107,15 @@ export const fetchUsers = async () => {
     return (Array.isArray(data) ? data : []).map(mapUser);
 };
 
+export const updateUser = async (id, data) => {
+    return await apiClient.patch(`/users/${id}`, data);
+};
+
+export const deleteUser = async (id) => {
+    await apiClient.delete(`/users/${id}`);
+    return { success: true };
+};
+
 // --- Payments ---
 export const fetchPayments = async () => {
     const data = await apiClient.get('/payments');

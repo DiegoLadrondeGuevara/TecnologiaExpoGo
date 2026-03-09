@@ -6,7 +6,8 @@ import { fetchCategories, createCategory, deleteCategory } from '../services/api
 const PRESET_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#facc15', '#22c55e'];
 
 export default function CategoriesPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isEs = i18n.language === 'es';
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -41,12 +42,12 @@ export default function CategoriesPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{t('admin.categories')}</h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.manage_categories_desc', { defaultValue: 'Organiza tus productos por grupos y colores.' })}</p>
+                    <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Organiza tus productos por grupos y colores.' : 'Organize your products by groups and colors.'}</p>
                 </div>
                 <button
                     onClick={() => setShowForm(!showForm)}
@@ -68,7 +69,7 @@ export default function CategoriesPage() {
 
             {/* Create Form */}
             {showForm && (
-                <div className="glass-card p-6 animate-slide-down">
+                <div className="glass-card p-7">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
                         <div className="space-y-3">
                             <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.categoryName')}</label>
@@ -85,7 +86,7 @@ export default function CategoriesPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>Color Theme</label>
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Tema de Color' : 'Color Theme'}</label>
                             <div className="flex flex-wrap gap-3 p-2 rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}>
                                 {PRESET_COLORS.map(c => (
                                     <button
@@ -122,11 +123,11 @@ export default function CategoriesPage() {
             )}
 
             {/* Category Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {categories.map((cat, i) => (
                     <div
                         key={cat.id}
-                        className={`group relative glass-card glass-card-hover hover-lift p-6 overflow-hidden animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+                        className="group relative glass-card p-7 overflow-hidden card-hover"
                     >
                         <div className="flex items-start justify-between mb-6">
                             <div
@@ -163,7 +164,7 @@ export default function CategoriesPage() {
                         {/* Progress bar */}
                         <div className="mt-6">
                             <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }}>
-                                <span>Density</span>
+                                <span>{isEs ? 'Densidad' : 'Density'}</span>
                                 <span>{Math.min(Math.round((cat.productCount / 20) * 100), 100)}%</span>
                             </div>
                             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
