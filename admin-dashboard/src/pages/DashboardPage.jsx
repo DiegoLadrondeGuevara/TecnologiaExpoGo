@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, Package, ShoppingCart, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { fetchDashboardStats } from '../services/api';
@@ -6,6 +7,7 @@ import { formatPrice } from '../../../shared-logic/currency';
 
 export default function DashboardPage() {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
@@ -115,7 +117,8 @@ export default function DashboardPage() {
                         <h3 className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>{t('admin.recentOrders')}</h3>
                     </div>
                     <button
-                        className="text-xs font-semibold flex items-center gap-1 transition-colors"
+                        onClick={() => navigate('/sales')}
+                        className="text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                         style={{ color: '#818cf8' }}
                         onMouseEnter={(e) => e.currentTarget.style.color = '#a5b4fc'}
                         onMouseLeave={(e) => e.currentTarget.style.color = '#818cf8'}

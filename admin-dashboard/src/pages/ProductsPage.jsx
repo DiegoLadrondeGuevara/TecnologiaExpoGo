@@ -102,7 +102,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Table */}
-            <div className="glass-card overflow-hidden animate-fade-in-up stagger-2">
+            <div className="glass-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -119,28 +119,12 @@ export default function ProductsPage() {
                             {products.map((p) => (
                                 <tr key={p.id} className="group table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
                                     <td className="px-6 py-4 w-20">
-                                        <div className="relative group/img overflow-hidden rounded-xl">
-                                            <img
-                                                src={p.image_url}
-                                                alt=""
-                                                className="w-14 h-14 rounded-xl object-cover"
-                                                style={{
-                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                    transition: 'transform 0.3s ease',
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                            />
-                                            <div
-                                                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 rounded-xl"
-                                                style={{
-                                                    background: 'rgba(0,0,0,0.5)',
-                                                    transition: 'opacity 0.2s ease',
-                                                }}
-                                            >
-                                                <ExternalLink size={14} className="text-white" />
-                                            </div>
-                                        </div>
+                                        <img
+                                            src={p.image_url}
+                                            alt=""
+                                            className="w-14 h-14 rounded-xl object-cover"
+                                            style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                                        />
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="space-y-1">
@@ -182,7 +166,7 @@ export default function ProductsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100" style={{ transition: 'opacity 0.3s ease' }}>
+                                        <div className="flex gap-2 justify-end">
                                             <button
                                                 onClick={() => openEdit(p)}
                                                 className="p-2.5 rounded-xl"

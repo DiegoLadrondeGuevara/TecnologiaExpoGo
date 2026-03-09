@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Calendar, ShoppingBag, DollarSign, Search, MoreHorizontal, ArrowUpRight } from 'lucide-react';
-import { fetchUsers } from '../services/api';
+import {
+    Mail, Calendar, ShoppingBag, DollarSign, Search,
+    MoreHorizontal, ArrowUpRight, X, Package, Clock,
+    CheckCircle, Truck, PackageCheck, XCircle, User
+} from 'lucide-react';
+import { fetchUsers, fetchOrders } from '../services/api';
 import { formatPrice } from '../../../shared-logic/currency';
 
 export default function UsersPage() {
@@ -11,6 +15,11 @@ export default function UsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
 
+    // Detail modal state
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userOrders, setUserOrders] = useState([]);
+    const [loadingOrders, setLoadingOrders] = useState(false);
+
     useEffect(() => {
         fetchUsers().then(data => { setUsers(data); setLoading(false); });
     }, []);
@@ -19,6 +28,35 @@ export default function UsersPage() {
         u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const openUserDetail = async (user) => {
+        setSelectedUser(user);
+        setLoadingOrders(true);
+        setUserOrders([]);
+        try {
+            const allOrders = await fetchOrders();
+            const orders = allOrders.filter(o => o.userId === user.id);
+            setUserOrders(orders);
+        } catch {
+            setUserOrders([]);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
+
+    const closeModal = () => {
+        setSelectedUser(null);
+        setUserOrders([]);
+    };
+
+    // Order status config
+    const orderStatusConfig = {
+        pending: { label: i18n.language === 'es' ? 'Pendiente' : 'Pending', icon: Clock, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.08)' },
+        paid: { label: i18n.language === 'es' ? 'Pagado' : 'Paid', icon: CheckCircle, color: '#10b981', bg: 'rgba(16, 185, 129, 0.08)' },
+        shipped: { label: i18n.language === 'es' ? 'Enviado' : 'Shipped', icon: Truck, color: '#6366f1', bg: 'rgba(99, 102, 241, 0.08)' },
+        delivered: { label: i18n.language === 'es' ? 'Entregado' : 'Delivered', icon: PackageCheck, color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.08)' },
+        cancelled: { label: i18n.language === 'es' ? 'Cancelado' : 'Cancelled', icon: XCircle, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.08)' },
+    };
 
     if (loading) {
         return (
@@ -86,10 +124,7 @@ export default function UsersPage() {
                                         style={{
                                             background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
                                             boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
-                                            transition: 'transform 0.3s ease',
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                     >
                                         {user.name.split(' ').map(n => n[0]).join('')}
                                     </div>
@@ -104,21 +139,13 @@ export default function UsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold leading-tight" style={{ color: 'var(--color-text-primary)', transition: 'color 0.2s ease' }}>{user.name}</h3>
+                                    <h3 className="font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>{user.name}</h3>
                                     <div className="flex items-center gap-1.5 mt-1" style={{ color: 'var(--color-text-muted)' }}>
                                         <Mail size={12} />
                                         <span className="text-xs font-medium truncate max-w-[140px]">{user.email}</span>
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                className="p-2 rounded-lg"
-                                style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
-                            >
-                                <MoreHorizontal size={20} />
-                            </button>
                         </div>
 
                         {/* Stats */}
@@ -145,7 +172,8 @@ export default function UsersPage() {
 
                         {/* View Details Button */}
                         <button
-                            className="w-full mt-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 group/btn"
+                            onClick={() => openUserDetail(user)}
+                            className="w-full mt-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer"
                             style={{
                                 background: 'rgba(255,255,255,0.02)',
                                 border: '1px solid rgba(255,255,255,0.04)',
@@ -185,6 +213,206 @@ export default function UsersPage() {
             {filteredUsers.length === 0 && (
                 <div className="py-20 text-center">
                     <p className="font-semibold italic" style={{ color: 'var(--color-text-muted)' }}>No se encontraron usuarios que coincidan con "{searchTerm}"</p>
+                </div>
+            )}
+
+            {/* ═══ USER DETAIL MODAL ═══ */}
+            {selectedUser && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 animate-fade-in"
+                        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+                        onClick={closeModal}
+                    />
+
+                    {/* Modal */}
+                    <div
+                        className="relative w-full max-w-4xl glass-card overflow-hidden animate-scale-in"
+                        style={{
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+                            maxHeight: '90vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }}
+                    >
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-8 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold text-white"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                                        boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
+                                    }}
+                                >
+                                    {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                        {selectedUser.name}
+                                    </h3>
+                                    <div className="flex items-center gap-3 mt-0.5">
+                                        <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                                            <Mail size={11} /> {selectedUser.email}
+                                        </span>
+                                        <span className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                                            <Calendar size={11} /> {i18n.language === 'es' ? 'Miembro desde' : 'Member since'} {new Date(selectedUser.registeredAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={closeModal}
+                                className="p-2 rounded-lg cursor-pointer"
+                                style={{ color: 'var(--color-text-muted)', transition: 'all 0.2s ease' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+                            >
+                                <X size={22} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-8 overflow-y-auto flex-1">
+                            {loadingOrders ? (
+                                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                                    <div className="modern-spinner" />
+                                    <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                                        {i18n.language === 'es' ? 'Cargando historial...' : 'Loading history...'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Summary Stats */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                        {[
+                                            {
+                                                icon: ShoppingBag,
+                                                label: i18n.language === 'es' ? 'Total Pedidos' : 'Total Orders',
+                                                value: userOrders.length,
+                                                color: '#818cf8',
+                                                bg: 'rgba(99, 102, 241, 0.08)',
+                                            },
+                                            {
+                                                icon: DollarSign,
+                                                label: i18n.language === 'es' ? 'Dinero Gastado' : 'Money Spent',
+                                                value: formatPrice(userOrders.reduce((sum, o) => sum + o.total, 0), currency),
+                                                color: '#10b981',
+                                                bg: 'rgba(16, 185, 129, 0.08)',
+                                            },
+                                            {
+                                                icon: CheckCircle,
+                                                label: i18n.language === 'es' ? 'Pagados' : 'Paid',
+                                                value: userOrders.filter(o => o.status === 'paid' || o.status === 'shipped' || o.status === 'delivered').length,
+                                                color: '#06b6d4',
+                                                bg: 'rgba(6, 182, 212, 0.08)',
+                                            },
+                                            {
+                                                icon: Truck,
+                                                label: i18n.language === 'es' ? 'En Envío' : 'Shipping',
+                                                value: userOrders.filter(o => o.status === 'shipped').length,
+                                                color: '#f59e0b',
+                                                bg: 'rgba(245, 158, 11, 0.08)',
+                                            },
+                                        ].map(({ icon: Icon, label, value, color, bg }, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="rounded-xl p-4 flex items-center gap-3"
+                                                style={{ background: bg, border: '1px solid rgba(255,255,255,0.04)' }}
+                                            >
+                                                <div className="p-2.5 rounded-lg" style={{ background: `${color}20` }}>
+                                                    <Icon size={18} style={{ color }} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Order History */}
+                                    <div>
+                                        <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+                                            <Package size={16} style={{ color: '#818cf8' }} />
+                                            {i18n.language === 'es' ? 'Historial de Pedidos' : 'Order History'}
+                                        </h4>
+
+                                        {userOrders.length === 0 ? (
+                                            <div className="py-12 text-center rounded-xl" style={{ background: 'rgba(18,18,26,0.5)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                <ShoppingBag size={40} className="mx-auto mb-3" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }} />
+                                                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                                                    {i18n.language === 'es' ? 'Este cliente aún no tiene pedidos' : 'This customer has no orders yet'}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                <table className="w-full border-collapse">
+                                                    <thead>
+                                                        <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                                            {[
+                                                                i18n.language === 'es' ? 'Pedido' : 'Order',
+                                                                'Items',
+                                                                'Total',
+                                                                i18n.language === 'es' ? 'Estado' : 'Status',
+                                                                i18n.language === 'es' ? 'Fecha' : 'Date',
+                                                            ].map((h, i) => (
+                                                                <th key={i} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {userOrders.map((order) => {
+                                                            const sc = orderStatusConfig[order.status] || orderStatusConfig.pending;
+                                                            return (
+                                                                <tr key={order.id} className="table-row-hover" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                                                                    <td className="px-5 py-3">
+                                                                        <span className="font-mono text-sm font-bold" style={{ color: '#818cf8' }}>#{order.id.slice(0, 8)}</span>
+                                                                    </td>
+                                                                    <td className="px-5 py-3">
+                                                                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg w-fit" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                                                            <Package size={12} style={{ color: '#818cf8', opacity: 0.7 }} />
+                                                                            <span className="text-[11px] font-medium truncate max-w-[200px]" style={{ color: 'var(--color-text-muted)' }}>
+                                                                                {order.items.map(i => `${i.productName} x${i.quantity}`).join(', ')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-5 py-3">
+                                                                        <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(order.total, currency)}</span>
+                                                                    </td>
+                                                                    <td className="px-5 py-3">
+                                                                        <div
+                                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider"
+                                                                            style={{ background: sc.bg, color: sc.color }}
+                                                                        >
+                                                                            <sc.icon size={11} />
+                                                                            {sc.label}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-5 py-3">
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                                                                                {new Date(order.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                                            </span>
+                                                                            <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                                                                                {new Date(order.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                                            </span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

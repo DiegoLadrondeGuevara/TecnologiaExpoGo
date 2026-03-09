@@ -9,6 +9,7 @@ export default function PaymentsPage() {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
 
     useEffect(() => {
@@ -24,7 +25,17 @@ export default function PaymentsPage() {
         rejected: { label: t('admin.failed'), icon: XCircle, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.08)' },
     };
 
-    const filtered = filter === 'all' ? payments : payments.filter(p => p.status === filter);
+    const filtered = payments
+        .filter(p => filter === 'all' ? true : p.status === filter)
+        .filter(p => {
+            if (!searchTerm) return true;
+            const s = searchTerm.toLowerCase();
+            return (
+                String(p.orderId).toLowerCase().includes(s) ||
+                p.userName.toLowerCase().includes(s) ||
+                p.items.some(item => item.toLowerCase().includes(s))
+            );
+        });
     const totalApproved = payments.filter(p => p.status === 'approved').reduce((s, p) => s + p.amount, 0);
 
     if (loading) {
@@ -81,6 +92,8 @@ export default function PaymentsPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--color-text-muted)' }} />
                     <input
                         type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder={t('admin.search_order', { defaultValue: 'Buscar pedido...' })}
                         className="glass-input rounded-xl py-2 pl-10 pr-4 text-sm text-white w-64"
                     />
