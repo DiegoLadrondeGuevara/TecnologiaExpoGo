@@ -47,8 +47,6 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-            {/* Ambient background glow */}
-            <div className="ambient-glow" style={{ width: '100%', height: '100%' }} />
 
             {/* ═══ SIDEBAR ═══ */}
             <aside
@@ -278,8 +276,7 @@ export default function DashboardLayout() {
                     className="flex items-center justify-between px-8 py-4 flex-shrink-0"
                     style={{
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
-                        backgroundColor: 'rgba(10, 10, 15, 0.5)',
-                        backdropFilter: 'blur(12px)',
+                        backgroundColor: 'rgba(10, 10, 15, 0.8)',
                     }}
                 >
                     <div className="flex items-center gap-3">
@@ -310,7 +307,7 @@ export default function DashboardLayout() {
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto" style={{ backgroundColor: 'transparent' }}>
-                    <div className="p-8 max-w-7xl mx-auto animate-fade-in">
+                    <div className="p-8 max-w-7xl mx-auto">
                         <Outlet />
                     </div>
                 </main>

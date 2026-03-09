@@ -41,7 +41,7 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="animate-fade-in-up">
+            <div>
                 <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
                     {t('admin.dashboard')}
                 </h2>
@@ -55,7 +55,7 @@ export default function DashboardPage() {
                 {statCards.map((card, i) => (
                     <div
                         key={i}
-                        className={`glass-card glass-card-hover hover-lift p-6 relative overflow-hidden animate-fade-in-up stagger-${i + 1}`}
+                        className="glass-card p-6 relative overflow-hidden"
                         style={{ cursor: 'default' }}
                     >
                         <div className="flex items-start justify-between relative z-10">
@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Transactions Table */}
-            <div className="glass-card overflow-hidden animate-fade-in-up stagger-5">
+            <div className="glass-card overflow-hidden">
                 {/* Table header */}
                 <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div className="flex items-center gap-3">

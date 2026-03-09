@@ -11,6 +11,7 @@ export default function PaymentsPage() {
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
+    const isEs = i18n.language === 'es';
 
     useEffect(() => {
         fetchPayments().then(data => {
@@ -50,26 +51,26 @@ export default function PaymentsPage() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-fade-in-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{t('admin.payments')}</h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.manage_transactions', { defaultValue: 'Historial completo de transacciones y estados.' })}</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Historial completo de transacciones y estados.' : 'Complete transaction history and statuses.'}</p>
                 </div>
 
                 {/* Total Collected Card */}
-                <div className="glass-card glass-card-hover p-4 flex items-center gap-4 animate-fade-in-up stagger-2" style={{ minWidth: '220px' }}>
+                <div className="glass-card p-4 flex items-center gap-4" style={{ minWidth: '220px' }}>
                     <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
                         <CreditCard size={22} color="#fff" />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{t('admin.total_collected', { defaultValue: 'Total Cobrado' })}</p>
+                        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Total Cobrado' : 'Total Collected'}</p>
                         <p className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatPrice(totalApproved, currency)}</p>
                     </div>
                 </div>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 animate-fade-in-up stagger-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex p-1 rounded-xl" style={{ background: 'rgba(20,20,28,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
                     {['all', 'approved', 'pending', 'rejected'].map(f => (
                         <button
@@ -83,7 +84,7 @@ export default function PaymentsPage() {
                                 transition: 'all 0.3s ease',
                             }}
                         >
-                            {f === 'all' ? (i18n.language === 'es' ? 'Todos' : 'All') : statusConfig[f]?.label}
+                            {f === 'all' ? (isEs ? 'Todos' : 'All') : statusConfig[f]?.label}
                         </button>
                     ))}
                 </div>
@@ -101,7 +102,7 @@ export default function PaymentsPage() {
             </div>
 
             {/* Table */}
-            <div className="glass-card overflow-hidden animate-fade-in-up stagger-4">
+            <div className="glass-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>

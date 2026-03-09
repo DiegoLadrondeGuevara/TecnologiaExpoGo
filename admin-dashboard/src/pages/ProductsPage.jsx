@@ -16,6 +16,7 @@ export default function ProductsPage() {
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const currency = i18n.language === 'es' ? 'PEN' : 'USD';
+    const isEs = i18n.language === 'es';
     const [error, setError] = useState('');
     const [uploading, setUploading] = useState(false);
 
@@ -88,10 +89,10 @@ export default function ProductsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>{t('admin.products')}</h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.manage_inventory', { defaultValue: 'Control total sobre tu catálogo de productos.' })}</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Control total sobre tu catálogo de productos.' : 'Full control over your product catalog.'}</p>
                 </div>
                 <button
                     onClick={openCreate}
@@ -145,12 +146,9 @@ export default function ProductsPage() {
                                         >
                                             <div
                                                 className="w-1 h-1 rounded-full"
-                                                style={{
-                                                    backgroundColor: p.stock <= 5 ? '#f59e0b' : '#10b981',
-                                                    animation: p.stock <= 5 ? 'glowPulse 2s ease-in-out infinite' : 'none',
-                                                }}
+                                                style={{ backgroundColor: p.stock <= 5 ? '#f59e0b' : '#10b981' }}
                                             />
-                                            {p.stock} Units
+                                            {p.stock} {isEs ? 'Uds' : 'Units'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -256,7 +254,7 @@ export default function ProductsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Left: Image Preview */}
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>Previsualización</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Previsualización' : 'Preview'}</label>
                                     <div
                                         className="aspect-square rounded-2xl flex items-center justify-center overflow-hidden relative group"
                                         style={{
@@ -269,7 +267,7 @@ export default function ProductsPage() {
                                         ) : (
                                             <div className="text-center space-y-2">
                                                 <ImageIcon size={48} style={{ color: 'var(--color-text-muted)' }} className="mx-auto" />
-                                                <p className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>No Image Selected</p>
+                                                <p className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>{isEs ? 'Sin imagen' : 'No Image Selected'}</p>
                                             </div>
                                         )}
                                     </div>
@@ -291,7 +289,7 @@ export default function ProductsPage() {
                                             }}
                                         >
                                             {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                                            {uploading ? 'Uploading...' : 'Upload Image'}
+                                            {uploading ? (isEs ? 'Subiendo...' : 'Uploading...') : (isEs ? 'Subir Imagen' : 'Upload Image')}
                                             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
                                         </label>
                                     )}
@@ -339,7 +337,7 @@ export default function ProductsPage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.specs')} (Separado por comas)</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] ml-1" style={{ color: 'var(--color-text-muted)' }}>{t('admin.specs')} ({isEs ? 'Separado por comas' : 'Comma separated'})</label>
                                         <input type="text" value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} placeholder="Ej: 16GB RAM, 512GB SSD..." className="glass-input w-full rounded-xl py-3 px-4 text-white mt-1.5" />
                                     </div>
                                 </div>
